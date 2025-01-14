@@ -486,27 +486,30 @@
         throw new VspRuntimeError("unit-definition-missing", "Unit-Definition is missing.")
       }
       console.log('what now?');
+
+      // -- login
+      Message.send.toTaskPlayer({ eventType: 'setUserId', id: 'verona' });
+
+
+      // -- push item to taskplayer
+
       const ibUnitConfig = JSON.parse(data.unitDefinition);
       // TODO catch error
       console.log(ibUnitConfig);
       // TODO check runtimeCompatibilityVersion
-
-      Message.send.toTaskPlayer({ eventType: 'setUserId', id: 'verona' });
-
       const itemRootPathPrefix = '';
       const mathJaxCdnUrl = undefined;
-      const msg = JSON.stringify({
+      Message.send.toTaskPlayer({
         eventType: 'addItem',
         itemConfig: ibUnitConfig,
         resourcePath: `${itemRootPathPrefix}/resources`,
         externalResourcePath: `${itemRootPathPrefix}/external-resources`,
         libraryPathsMap: { MathJax: mathJaxCdnUrl === undefined ? 'math-jax unknown' : mathJaxCdnUrl }
       });
-      Message.send.toTaskPlayer(msg);
 
       const assessmentDef = {
-        "item": "I008513_Tortoise",
-        "task": "I008513",
+        "item": "Simple",
+        "task": "FirstTask",
         "scope": "A"
       };
 
