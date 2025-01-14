@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<variable:VariableStore xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:variable="http://variable.softcon.de">
+  <variables name="VarA" defaultValue="0"/>
+</variable:VariableStore>

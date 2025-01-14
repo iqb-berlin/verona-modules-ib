@@ -1,0 +1,15 @@
+include:
+  - template: Security/SAST.gitlab-ci.yml
+  - template: Security/Secret-Detection.gitlab-ci.yml
+  - template: Dependency-Scanning.gitlab-ci.yml
+
+image: node:20.11-buster
+
+test:
+  stage: test
+  script:
+    - apt-get update && apt-get install firefox-esr -y
+    - npm install
+    - export TERM=xterm
+    - 'echo "{\"headless\": true, \"keepOpen\": false}" > test/config.json'
+    - npm run test

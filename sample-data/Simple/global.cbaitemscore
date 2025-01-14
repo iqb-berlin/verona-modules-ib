@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cbaitemscore:Item xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:cbaitemscore="http://cbaitemscore.softcon.de" xmi:id="_-hwMAHhYEey2b9TARAkC8Q" version="VERSION_01_01">
+  <itemScoreList xmi:id="_I8dQUHhZEey2b9TARAkC8Q" name="FirstTask" minimumHits="1" conditionStatus="true" startPage="FirstPage" initializationFile="" startXPage="" isScoringTask="false" taskToScore=""/>
+</cbaitemscore:Item>

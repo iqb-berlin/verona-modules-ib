@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <style>
+    #host {
+        position:fixed;
+        top:0;
+        left:0;
+        bottom:0;
+        right:0;
+        width:99%;
+        height:99%;
+        border: 2px solid black;
+        margin: 2px;
+        padding: 0;
+        overflow:hidden;
+        background: white
+    }
+  </style>
+</head>
+<body style="background: burlywood">
+<iframe id="host"></iframe>
+<script>
+  (async () => {
+    const host = document.getElementById('host');
+    const player = await fetch('http://localhost:9999/player');
+    const playerSettings = 'debounceStateMessages=0&debounceKeyboardEvents=0';
+    const playerSrc = (await player.text())
+      .replace(/const overridePlayerSettings = (location\.search);/, `const overridePlayerSettings = "${playerSettings}"`);
+    const playerConfigRes = await fetch('http://localhost:9999/playerConfig')
+    const playerConfigTxt = playerConfigRes ? await playerConfigRes.text() : null;
+    const playerConfig = playerConfigTxt ? JSON.parse(playerConfigTxt) : {};
+    const unit = await fetch('http://localhost:9999/unit')
+    const unitDefinition = await unit.text() || 'not found';
+    host.srcdoc = playerSrc
+    window.addEventListener('message', event => {
+      if (event.data.type === 'vopReadyNotification') {
+        host.contentWindow.postMessage({
+          type: 'vopStartCommand',
+          unitDefinition,
+          sessionId: '1',
+          playerConfig,
+          unitState: {
+            unitStateDataType: 'iqb-standard@1.0',
+            dataParts: {}
+          }
+        }, '*');
+      }
+    }, false);
+  })();
+</script>
+</body>
+</html>

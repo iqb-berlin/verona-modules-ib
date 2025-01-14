@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cbaml:CBAMLRoot xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:cbaml="http://cbaml.softcon.de" xmi:id="_5hjgIFajEeuMhrHBi5UcKQ" version="VERSION_01_13">
+  <items xsi:type="cbaml:Frame" xmi:id="_6rxQgFajEeuMhrHBi5UcKQ" id="-52fc7036:17e6d205be0:-8000" width="600" height="600" backgroundColor="-1" fontName="Segoe UI" italic="false" bold="false" underlined="false" fontSize="9" fontColor="-16777216" userDefinedId="FirstPageFrameSimple" borderColor="-5197648">
+    <items xsi:type="cbaml:Panel" xmi:id="_7iBjEFajEeuMhrHBi5UcKQ" width="600" height="600" backgroundColor="-5848680" fontName="Segoe UI" italic="false" bold="false" underlined="false" fontSize="9" fontColor="-16777216" userDefinedId="FirstPagePanel" borderColor="-5197648">
+      <items xsi:type="cbaml:CheckBox" xmi:id="_DFHpgHhZEey2b9TARAkC8Q" width="95" height="25" x="225" y="15" backgroundColor="-1193606" fontName="Segoe UI" italic="false" bold="false" underlined="false" fontSize="9" text="CheckBoxA" fontColor="-16777216" userDefinedId="CheckBoxA" borderColor="-5197648"/>
+      <items xsi:type="cbaml:SingleLineInputField" xmi:id="_8p42AHhZEey2b9TARAkC8Q" width="170" height="25" x="40" y="15" backgroundColor="-1858404" fontName="Segoe UI" italic="false" bold="false" underlined="false" fontSize="9" fontColor="-16777216" userDefinedId="SingleLineInputFieldA" borderColor="-5197648"/>
+      <items xsi:type="cbaml:Button" xmi:id="_mDKGUEvnEe2Ps8lueITpgw" width="84" height="24" x="108" y="72" backgroundColor="-1193606" fontName="Segoe UI" italic="false" bold="false" underlined="false" fontSize="9" text="Next Task" fontColor="-16777216" userDefinedId="$122076417470600" alignment="CENTER" borderColor="-5197648" command="NEXT_TASK"/>
+      <items xsi:type="cbaml:Button" xmi:id="_ojeG8EvnEe2Ps8lueITpgw" width="84" height="24" x="216" y="72" backgroundColor="-1193606" fontName="Segoe UI" italic="false" bold="false" underlined="false" fontSize="9" text="Cancel Task" fontColor="-16777216" userDefinedId="$122076417486000" alignment="CENTER" borderColor="-5197648" command="CANCEL_TASK"/>
+    </items>
+  </items>
+</cbaml:CBAMLRoot>
