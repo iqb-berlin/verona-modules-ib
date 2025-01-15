@@ -11,14 +11,44 @@
   },
   "scripts": {
     "test": "clear && npx jasmine --config=test/jasmine.json",
-    "testbed": "node dev-tools/testbed.js"
+    "testbed": "node dev-tools/testbed.js",
+    "build": "node dev-tools/build.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/iqb-berlin/verona-player-simple.git"
   },
   "eslintConfig": {
-    "extends": "@iqb/eslint-config/javascript"
+    "overrides": [
+      {
+        "files": [
+          "*.html"
+        ],
+        "plugins": [
+          "html"
+        ],
+        "parserOptions": {
+          "ecmaVersion": 2015,
+          "sourceType": "module"
+        },
+        "extends": "@iqb/eslint-config/javascript"
+      },
+      {
+        "files": [
+          "*.ts"
+        ],
+        "extends": "@iqb/eslint-config",
+        "parserOptions": {
+          "project": "./**/tsconfig.json"
+        }
+      },
+      {
+        "files": [
+          "*.js"
+        ],
+        "extends": "@iqb/eslint-config/javascript"
+      }
+    ]
   },
   "author": "Philipp Franck",
   "license": "MIT",

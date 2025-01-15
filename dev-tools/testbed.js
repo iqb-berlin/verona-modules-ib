@@ -5,6 +5,7 @@ const { Builder } = require('selenium-webdriver');
 const fs = require('fs');
 const http = require('http');
 const config = require('./config.json');
+const playerBuilder = require('./player-builder');
 
 const path = fs.realpathSync(`${__dirname}/..`);
 
@@ -59,6 +60,7 @@ const serve = () => {
 
 (async () => {
   const options = new Options();
+  options.addArguments('--devtools');
   const driver = await new Builder()
     .forBrowser('firefox')
     .setFirefoxOptions(options)
@@ -69,6 +71,7 @@ const serve = () => {
 
   fs.watch(path, { recursive: true }, async (eventType, filename) => {
     if (filename && filename.startsWith('.')) {
+      playerBuilder.build();
       await driver.navigate().refresh();
       if (!config.host) await sendStartCommand(driver);
     }

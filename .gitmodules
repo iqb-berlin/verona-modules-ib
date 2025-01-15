@@ -1,0 +1,3 @@
+[submodule "CBAItemBuilderSupportedRuntimes"]
+	path = CBAItemBuilderSupportedRuntimes
+	url = https://github.com/DIPFtba/CBAItemBuilderSupportedRuntimes.git

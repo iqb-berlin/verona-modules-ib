@@ -1,7 +1,8 @@
 {
-  "player": "verona-player-ib-0.1.html",
+  "_player": "dist/player/verona-player-ib_9.8.0-0.1.html",
+  "player": "dist/player/verona-player-ib_9.9.0-0.1.html",
   "data": "sample-data/empty.json",
-  "unit": "sample-data/Simple/config.json",
+  "unit": "sample-data/Simple.ib2verona.json",
   "playerConfig": "dev-tools/player-config.json",
-  "no-host": "dev-tools/testhost.html"
+  "host": "dev-tools/testhost.html"
 }
