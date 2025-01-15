@@ -4,21 +4,22 @@
   <meta charset="UTF-8">
   <title>Title</title>
   <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
     #host {
-        position:fixed;
-        top:0;
-        left:0;
-        bottom:0;
-        right:0;
-        width:99%;
-        height:99%;
-        border: 2px solid black;
-        margin: 2px;
-        padding: 0;
-        overflow:hidden;
-        background: white
+      position: fixed;
+      height: calc(100vh - 8px);
+      width: calc(100vw - 8px);
+      border: 4px solid blue;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: white
     }
   </style>
+  <link rel="icon" href="data:,">
 </head>
 <body style="background: burlywood">
 <iframe id="host"></iframe>

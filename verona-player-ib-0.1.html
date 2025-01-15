@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Verona Player for ItemBuilder</title>
+  <link rel="icon" href="data:,">
+  <script type="application/ld+json">
+    {
+      "$schema": "https://raw.githubusercontent.com/verona-interfaces/metadata/master/verona-module-metadata.json",
+      "type": "player",
+      "id": "verona-player-ib",
+      "name": [
+        {
+          "value": "Verona Player for DIPF Item Builder Items using IB Runtime: «««« ibVersion »»»»)",
+          "lang": "en"
+        }
+      ],
+      "version": "0.0.1",
+      "specVersion": "6.0",
+      "description": [
+        {
+          "value": "TODO",
+          "lang": "en"
+        }
+      ],
+      "maintainer": {
+        "name": [
+          {
+            "value": "IQB - Institute for Educational Quality Improvement",
+            "lang": "en"
+          }
+        ],
+        "email": "iqb-tbadev@hu-berlin.de",
+        "url": "https://www.iqb.hu-berlin.de"
+      },
+      "code": {
+        "repositoryUrl": "https://github.com/iqb-berlin/verona-modules-ib",
+        "repositoryType": "git",
+        "licenseType": "MIT",
+        "licenseUrl": "https://raw.githubusercontent.com/iqb-berlin/verona-modules-ib/main/LICENSE"
+      },
+      "metadataVersion": "2.0"
+    }
+  </script>
+
+  <style>
+    html, body {
+      height: 100vh;
+      overflow: hidden;
+      font-family: sans-serif;
+      margin: 0;
+    }
+
+    #unit {
+      overflow: auto;
+      height: 100vh;
+      margin: 0 9em;
+    }
+
+    #unit.paged.buttons,
+    #unit.paged.separate {
+      overflow-y: auto;
+      height: 100vh;
+    }
+
+    #unit.paged fieldset:first-of-type {
+      display: block
+    }
+
+    #unit.paged.buttons fieldset,
+    #unit.paged.separate fieldset {
+      overflow-y: auto;
+      height: calc(100% - 100px);
+      padding: 50px 0;
+      border: 0;
+    }
+
+    /* add some whitespace in scrollmode, to make it possible to get last pages on the top even if they are small */
+    #unit.paged.concat-scroll:after,
+    #unit.paged.concat-scroll-snap:after {
+      height: 100%;
+      display: block;
+      content: " ";
+    }
+
+    #unit.concat-scroll-snap {
+      scroll-snap-type: y proximity;
+    }
+
+    #unit.concat-scroll-snap fieldset {
+      scroll-snap-align: start;
+    }
+
+    .page-bottom-anchor {
+      display: block;
+      height: 50px;
+    }
+
+    .vsp-navigation-tier {
+      position: fixed;
+    }
+
+    .vsp-navigation-tier button {
+      padding: 2px 6px;
+      cursor: pointer;
+    }
+
+    .vsp-navigation-tier button,
+    vsp-namehint,
+    vsp-message {
+      border: none;
+      border-radius: 2px;
+      box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.75);
+      background: rgba(0, 0, 0, 0.75);
+      color: white;
+      font-size: small;
+    }
+
+    vsp-namehint {
+      padding: 1px;
+    }
+
+    vsp-message {
+      position: fixed;
+      display: none;
+      max-height: 300px;
+      right: 20px;
+      top: 20px;
+      padding: 10px;
+      width: 300px;
+      filter: blur(4px);
+      opacity: 0;
+      transform: scale(2);
+      transform-origin: center;
+      animation: flyin 0.5s ease forwards;
+    }
+
+    vsp-message [onclick] {
+      cursor: pointer;
+    }
+
+    vsp-message [onclick]:hover {
+      text-decoration: underline;
+      color: grey;
+    }
+
+    vsp-message.error {
+      background: rgba(150, 0, 0, 0.75);
+    }
+
+    vsp-pointer {
+      position: absolute;
+      height: 30px;
+      width: 30px;
+    }
+
+    vsp-pointer:after {
+      position: relative;
+      line-height: 25px;
+      text-shadow: 0 0 5px rgba(0,0,0,0.75);
+      display: inline-block;
+      filter: blur(4px);
+      opacity: 0;
+      transform: scale(2);
+      transform-origin: center;
+      animation: flyin 0.5s ease forwards;
+      font-size: 30px;
+      content: "►";
+    }
+
+    vsp-message-close {
+      position: absolute;
+      right: 5px;
+      top: 2px;
+      cursor: pointer;
+    }
+
+    .vsp-navigation-tier button:hover,
+    vsp-message-close:hover {
+      color: grey
+    }
+
+    .vsp-navigation-tier button:disabled {
+      box-shadow: 0 0 5px 0 rgba(100, 100, 100, 0.75);
+      background: rgba(0, 0, 0, 0.75);
+      color: grey;
+      cursor: auto;
+    }
+
+    #vsp-meta dl dd {
+      display: inline;
+      margin: 0;
+    }
+
+    #vsp-meta dl dd:after {
+      display: block;
+      content: '';
+    }
+
+    #vsp-meta dl dt {
+      display: inline-block;
+      min-width: 250px;
+    }
+
+    @keyframes flyin {
+      to {
+        filter: blur(0);
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+  </style>
+
+</head>
+<body style="background: #5e93c5">
+
+  <vsp-message>
+    <vsp-message-content></vsp-message-content>
+    <vsp-message-close>✖</vsp-message-close>
+  </vsp-message>
+
+  <iframe id='ib-runtime-host' style='margin: 0; padding: 0; border: 1px solid indianred; position: fixed; height: calc(100vh - 2px); width: calc(100vw - 2px); background: white'></iframe>
+
+  <script>
+    const unitStateDataType = "iqb-standard@1.3";
+    const unitDefinitionType = "verona-player-simple-6.0";
+
+    const taskPlayer = document.getElementById('ib-runtime-host');
+
+    const playerMetaData = JSON.parse(document.querySelector('script[type="application/ld+json"]').innerText)
+
+    const pagingModes = ["separate", "concat-scroll", "concat-scroll-snap", "buttons"];
+
+    let playerConfig = {
+      logPolicy: 'eager', // "disabled" | "lean" | "rich" | "debug"
+      unitNumber: 0,
+      unitTitle: 'Unit',
+      unitId: 'unit',
+      enabledNavigationTargets: [], // can contain  "next" "previous" "first" "last" "end"
+      pagingMode: "buttons", // "separate" | "concat-scroll" | "concat-scroll-snap" | "buttons"
+      printMode: "off",
+      startPage: null,
+      directDownloadUrl: null,
+    }
+
+    let sessionId = "";
+
+    const isDefined = v => (typeof v !== "undefined");
+    const isEmpty = object => {
+      // noinspection LoopStatementThatDoesntLoopJS
+      for(let property in object) return false;
+      return true;
+    }
+
+    const Format = new class {
+      parse = format => {
+        const parts = format.match(/(^.+)[-@](\d+)(.(\d+))?(.(\d+))?(-(.+))?$/);
+        return parts ? {
+          format: parts[1] || format,
+          major: parseInt(parts[2] || 0),
+          minor: parseInt(parts[4] || 0),
+          patch: parseInt(parts[6] || 0),
+          label: parts[8] || ''
+        } : format;
+      }
+      isSupportedBy = (format1, format2) => {
+        const v1 = Format.parse(format1);
+        const v2 = Format.parse(format2);
+        if (v1.format !== v2.format) return false;
+        if (v1.major !== v2.major) return false;
+        return (v1.minor <= v2.minor);
+      };
+    }
+
+    const Time = new class {
+      throttle = (callback, limit) => {
+        let waiting = false;
+        return function () {
+          if (waiting) return;
+          callback.apply(this, arguments);
+          waiting = true;
+          setTimeout(() => {
+            waiting = false;
+          }, limit);
+        }
+      }
+
+      debounce = (callback, limit, debounceCallback) => {
+        let handle = null;
+        return function () {
+          if (typeof debounceCallback === "function") {
+            debounceCallback.apply(this, arguments);
+          }
+          clearTimeout(handle);
+          handle = setTimeout(() => {
+            callback.apply(this, arguments);
+          }, limit);
+        }
+      }
+    }
+
+    const Message = new class {
+      send = new class {
+        _lastStates = {
+          playerState: null,
+          unitState: null
+        };
+
+        vopStateChangedNotification = () => {
+          const message = this._createStateMsg();
+          if (message.playerState || message.unitState || message.log) {
+            this._send(message);
+          }
+        };
+
+        vopReadyNotification = () => {
+          this._send({
+            type: 'vopReadyNotification',
+            metadata: playerMetaData
+          });
+        };
+
+        vopUnitNavigationRequestedNotification = target => {
+          this._send({
+            type: 'vopUnitNavigationRequestedNotification',
+            sessionId,
+            target,
+          });
+        };
+
+        vopWindowFocusChangedNotification = hasFocus => {
+          this._send({
+            type: 'vopWindowFocusChangedNotification',
+            sessionId,
+            hasFocus
+          });
+        }
+
+        vopRuntimeErrorNotification = (code, message) => {
+          this._send({
+            type: 'vopRuntimeErrorNotification',
+            sessionId,
+            code,
+            message
+          })
+        }
+
+        toTaskPlayer = msg => {
+          taskPlayer.contentWindow.postMessage(JSON.stringify(msg), { targetOrigin: '*'});
+        };
+
+        _send = msg => {
+          window.parent.postMessage(msg, '*');
+          document.dispatchEvent(new CustomEvent('sent:' + msg.type, {detail: msg}));
+        }
+
+        _createStateMsg = (complete = false) => {
+          const message = {
+            type: 'vopStateChangedNotification',
+            sessionId: sessionId,
+            timeStamp: Date.now(),
+          }
+
+          const playerState = this._getPlayerState();
+          if (complete || (JSON.stringify(playerState) !== JSON.stringify(this._lastStates.playerState))) {
+            this._lastStates.playerState = playerState;
+            if (!isEmpty(playerState)) {
+              message.playerState = playerState;
+            }
+          }
+
+          const unitState = this._getUnitState();
+          if (complete || (JSON.stringify(unitState) !== JSON.stringify(this._lastStates.unitState))) {
+            message.unitState = unitState;
+            this._lastStates.unitState = unitState;
+          }
+
+          if (Log.hasNew()) {
+            message.log = Log.next();
+          }
+
+          return message;
+        }
+
+        _getPlayerState = () => {
+          const playerState = {};
+          if (Pages.hasPages) {
+            playerState.validPages = Object.keys(Pages.validPages).map(id => ({id, label: Pages.validPages[id]}))
+            playerState.currentPage = Pages.currentPage.toString()
+          }
+          return playerState;
+        }
+
+        _getUnitState = () => ({
+          dataParts: Unit.getData(),
+          presentationProgress: Unit.getPresentationProgress(),
+          responseProgress: Unit.getResponseProgress(),
+          unitStateDataType
+        });
+      }
+
+      receive = (type, data) => {
+        if (data.eventType === "taskPlayerReady") {
+          console.log(data);
+        } else if (type === "vopStartCommand") {
+          Unit.start(data);
+          document.dispatchEvent(new CustomEvent(type, { detail: data }));
+        } else if (sessionId && (data.sessionId !== sessionId) && type && type.startsWith('vop')) {
+          throw new VspRuntimeError('wrong-session-id', `Wrong Session-Id: '${sessionId}' (was: '${sessionId}').`);
+        } else if (sessionId) {
+          document.dispatchEvent(new CustomEvent(type, { detail: data }));
+        } else {
+          console.warn(`Message before first vopStartCommand, ignored: ${type}`, data);
+        }
+      };
+    }
+
+    const Unit = new class {
+      definition = {
+        runtimeCompatibilityVersion : undefined,
+        item: undefined,
+        task: undefined,
+        scope: undefined
+      }
+
+      start = async data => {
+        console.log('start', data);
+        if (!data.sessionId) {
+          throw new VspRuntimeError("session-id-missing", "Session-Id is missing.");
+        }
+        sessionId = data.sessionId;
+        if (!data.unitDefinition) {
+          throw new VspRuntimeError("unit-definition-missing", "Unit-Definition is missing.")
+        }
+        this._setPlayerConfig(data.playerConfig || {});
+
+        console.log('what now?');
+
+
+        const ib2veronaFile = JSON.parse(data.unitDefinition);
+        // TODO catch error
+        console.log(ib2veronaFile);
+        this._setUnit(ib2veronaFile);
+
+
+        await this._loadTaskPlayer();
+      }
+
+      _loadTaskPlayer = async () => {
+        console.log('_loadTaskPlayer', taskPlayer);
+        // -- load runtime version
+        taskPlayer.addEventListener('load', this._startTaskPlayer);
+        taskPlayer.addEventListener('error', () => { throw new Error('could not load'); });
+        taskPlayer.src = playerConfig.directDownloadUrl + 'ib-runtime.' + this.definition.runtimeCompatibilityVersion + '.html';
+      }
+
+      _startTaskPlayer = async () => {
+        console.log('_startTaskPlayer');
+        // -- login
+        Message.send.toTaskPlayer({ eventType: 'setUserId', id: 'verona' });
+
+        // item path
+        const itemPath = playerConfig.directDownloadUrl + 'items/' + this.definition.item;
+
+        // -- get item config
+        const configFileCallResponse = await fetch(itemPath + '/config.json');
+        if (!configFileCallResponse.ok) {
+          console.error(configFileCallResponse);
+          throw new Error('Network response was not ok');
+        }
+
+        const itemConfig = await configFileCallResponse.json();
+        // TODO catch error
+
+        console.log(itemConfig);
+
+
+        // -- push item to taskplayer
+        const mathJaxCdnUrl = undefined;
+        Message.send.toTaskPlayer({
+          eventType: 'addItem',
+          itemConfig,
+          resourcePath: `${itemPath}/resources`,
+          externalResourcePath: `${itemPath}/external-resources`,
+          libraryPathsMap: { MathJax: mathJaxCdnUrl === undefined ? 'math-jax unknown' : mathJaxCdnUrl }
+        });
+
+        console.log('!');
+
+        Message.send.toTaskPlayer({
+          eventType: 'startTask',
+          item: this.definition.item,
+          task: this.definition.task,
+          scope: this.definition.scope
+        });
+      }
+
+      _setUnit = unitDef => {
+        this.definition.item = unitDef.item || new Error('1');
+        this.definition.task = unitDef.task || new Error('1');
+        this.definition.scope = unitDef.scope || new Error('1');
+        this.definition.runtimeCompatibilityVersion = unitDef.runtimeCompatibilityVersion || new Error('1');
+      }
+
+      _setPlayerConfig = newPlayerConfig => {
+        playerConfig = Object.assign(playerConfig, newPlayerConfig);
+        // Pages.applyPagingMode();
+        // Pages.goto(playerConfig.startPage || 1);
+      };
+    }
+
+    const Loader = new class {
+      script = async fileUrl => {
+        await new Promise((res, rej) => {
+        fetch(fileUrl)
+          .then(r => r.ok ? r.blob() : rej)
+          .then(b => {
+            let ou = URL.createObjectURL(b),
+            el = document.createElement("script");
+            el.setAttribute("src", ou);
+            el.setAttribute("type", "text/javascript");
+            el.onload = () => res();
+            document.body.appendChild(el);
+          })
+          .catch(e => rej);
+        });
+      }
+    }
+
+    class VspRuntimeError extends Error {
+      name = 'VspRuntimeError';
+      constructor(code, message) {
+        super(message);
+        this.code = code;
+      }
+    }
+
+    window.addEventListener('message', event => { Message.receive(event.data.type, event.data) }, false);
+
+    window.addEventListener('error', event => {
+      return; // TODO check if window == self
+      if (event.error.name === VspRuntimeError.name) {
+        Message.send.vopRuntimeErrorNotification(event.error.code, event.error.message);
+      } else {
+        Message.send.vopRuntimeErrorNotification('runtime-error', event.error.message);
+      }
+    }, false);
+
+    document.addEventListener("DOMContentLoaded", Message.send.vopReadyNotification);
+
+    document.addEventListener("vopPageNavigationCommand", event => {
+    });
+    document.addEventListener("vopNavigationDeniedNotification", event => {
+    });
+
+    document.addEventListener("vopPlayerConfigChangedNotification", event => {
+      // Unit.updatePlayerConfig(event.detail.playerConfig);
+    });
+
+    window.addEventListener('blur', () => {
+      Message.send.vopWindowFocusChangedNotification(document.hasFocus());
+    });
+
+    window.addEventListener('focus', () => {
+      Message.send.vopWindowFocusChangedNotification(document.hasFocus());
+    });
+  /*
+    PlayerUI.addEventListener('keypress', PlayerUI.itemElements, PlayerUI.preventFromImplicitSubmission);
+
+    PlayerUI.addEventListener('change', PlayerUI.itemElements, Message.send.vopStateChangedNotification);
+    PlayerUI.addEventListener('programmaticallyChange', PlayerUI.itemElements, Message.send.vopStateChangedNotification);
+    PlayerUI.addEventListener('keyup', PlayerUI.itemElements,
+      Time.debounce(Message.send.vopStateChangedNotification, parseInt(playerSettings.debounceKeyboardEvents), 10)
+    );
+
+    PlayerUI.addEventListener('change', PlayerUI.itemElements, Answers.setStatusChanged);
+    PlayerUI.addEventListener('programmaticallyChange', PlayerUI.itemElements, Answers.setStatusChanged);
+    PlayerUI.addEventListener('keyup', PlayerUI.itemElements, Answers.setStatusChanged);
+
+    PlayerUI.addEventListener('click', '#next-page', () => Pages.goto('#next'));
+    PlayerUI.addEventListener('click', '#prev-page', () => Pages.goto('#previous'));
+
+    PlayerUI.addEventListener('click', '#prev-unit', () => {
+      Message.send.vopUnitNavigationRequestedNotification("previous");
+    });
+    PlayerUI.addEventListener('click', '#next-unit', () => {
+      Message.send.vopUnitNavigationRequestedNotification("next");
+    });
+    PlayerUI.addEventListener('click', '#first-unit', () => {
+      Message.send.vopUnitNavigationRequestedNotification("first");
+    });
+    PlayerUI.addEventListener('click', '#last-unit', () => {
+      Message.send.vopUnitNavigationRequestedNotification("last");
+    });
+    PlayerUI.addEventListener('click', '#end-unit', () => {
+      Message.send.vopUnitNavigationRequestedNotification("end");
+    });
+    PlayerUI.addEventListener('click', 'vsp-message-close', () => {
+      PlayerUI.toggleMessage();
+    });
+
+    // make the player globally available for tests/extensions
+    window.vsp = { PlayerUI, Message, Pages, Log };
+
+    */
+
+  </script>
+</div>
+</body>
+</html>
