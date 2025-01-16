@@ -219,6 +219,10 @@
     <vsp-message-close>✖</vsp-message-close>
   </vsp-message>
 
+  <div id="clicka" style="cursor: pointer; position: fixed; top: 0; right: 0; height: 50px; width: 50px; border-radius: 50%; background: lightsteelblue; color: white; z-index: 10000">
+    æ
+  </div>
+
   <iframe id='ib-runtime-host' style='margin: 0; padding: 0; border: 1px solid indianred; position: fixed; height: calc(100vh - 2px); width: calc(100vw - 2px); background: white'></iframe>
 
   <script>
@@ -299,6 +303,15 @@
       }
     }
 
+    const TaskPlayer = new class {
+      receive = tyymessage => {
+        console.log('got', message);
+      }
+      send = msg => {
+        taskPlayer.contentWindow.postMessage(JSON.stringify(msg), { targetOrigin: '*'});
+      };
+    }
+
     const Message = new class {
       send = new class {
         _lastStates = {
@@ -344,10 +357,6 @@
             message
           })
         }
-
-        toTaskPlayer = msg => {
-          taskPlayer.contentWindow.postMessage(JSON.stringify(msg), { targetOrigin: '*'});
-        };
 
         _send = msg => {
           window.parent.postMessage(msg, '*');
@@ -424,7 +433,6 @@
       }
 
       start = async data => {
-        console.log('start', data);
         if (!data.sessionId) {
           throw new VspRuntimeError("session-id-missing", "Session-Id is missing.");
         }
@@ -439,7 +447,6 @@
 
         const ib2veronaFile = JSON.parse(data.unitDefinition);
         // TODO catch error
-        console.log(ib2veronaFile);
         this._setUnit(ib2veronaFile);
 
 
@@ -447,7 +454,6 @@
       }
 
       _loadTaskPlayer = async () => {
-        console.log('_loadTaskPlayer', taskPlayer);
         // -- load runtime version
         taskPlayer.addEventListener('load', this._startTaskPlayer);
         taskPlayer.addEventListener('error', () => { throw new Error('could not load'); });
@@ -455,9 +461,8 @@
       }
 
       _startTaskPlayer = async () => {
-        console.log('_startTaskPlayer');
         // -- login
-        Message.send.toTaskPlayer({ eventType: 'setUserId', id: 'verona' });
+        TaskPlayer.send({ eventType: 'setUserId', id: 'verona' });
 
         // unit path
         const unitPath = playerConfig.directDownloadUrl + 'units/' + this.definition.item;
@@ -472,12 +477,9 @@
         const itemConfig = await configFileCallResponse.json();
         // TODO catch error
 
-        console.log(itemConfig);
-
-
         // -- push item to taskplayer
         const mathJaxCdnUrl = undefined;
-        Message.send.toTaskPlayer({
+        TaskPlayer.send({
           eventType: 'addItem',
           itemConfig,
           resourcePath: `${unitPath}/resources`,
@@ -485,9 +487,7 @@
           libraryPathsMap: { MathJax: mathJaxCdnUrl === undefined ? 'math-jax unknown' : mathJaxCdnUrl }
         });
 
-        console.log('!');
-
-        Message.send.toTaskPlayer({
+        TaskPlayer.send({
           eventType: 'startTask',
           item: this.definition.item,
           task: this.definition.task,
@@ -539,7 +539,23 @@
       }
     }
 
-    window.addEventListener('message', event => { Message.receive(event.data.type, event.data) }, false);
+    window.addEventListener('message', event => {
+      console.log(typeof event.data);
+      console.log(typeof event.data.type);
+
+      if (typeof event.data === 'object'
+        && typeof event.data.type !== 'undefined'
+        && event.data.type.startsWith('vop')
+      ) {
+        Message.receive(event.data.type, event.data)
+      } else if (typeof event.data === 'string'
+        && event.data.includes('"eventType":')
+      ) {
+        const data = JSON.parse(event.data);TaskPlayer.receive(data.eventType, data);
+      } else {
+        console.log('unknown message: ', event.data);
+      }
+    }, false);
 
     window.addEventListener('error', event => {
       return; // TODO check if window == self
@@ -568,6 +584,7 @@
     window.addEventListener('focus', () => {
       Message.send.vopWindowFocusChangedNotification(document.hasFocus());
     });
+
   /*
     PlayerUI.addEventListener('keypress', PlayerUI.itemElements, PlayerUI.preventFromImplicitSubmission);
 
@@ -608,7 +625,22 @@
 
     */
 
+    document.getElementById('clicka').addEventListener('click', () => {
+      // TaskPlayer.send({
+      //   eventType: "getScoringResult"
+      // });
+      TaskPlayer.send({
+        eventType: "getTasksState"
+      });
+      // TaskPlayer.send({
+      //   eventType: "getTasksStateReturn"
+      // });
+      // TaskPlayer.send({
+      //   eventType: "getTaskReturn"
+      // });
+      console.log('state requested');
+    });
+
   </script>
-</div>
 </body>
 </html>

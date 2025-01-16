@@ -4,7 +4,7 @@ const { Options } = require('selenium-webdriver/firefox');
 const { Builder } = require('selenium-webdriver');
 const fs = require('fs');
 const http = require('http');
-const config = require('./config.json');
+let config = require('./config.json');
 
 const path = fs.realpathSync(`${__dirname}/..`);
 
@@ -65,6 +65,8 @@ const serve = () => {
 
 (async () => {
   buildPackage();
+  // eslint-disable-next-line global-require
+  config = require('./config.json');
   const options = new Options();
   options.addArguments('--devtools');
   const driver = await new Builder()
