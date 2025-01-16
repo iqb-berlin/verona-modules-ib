@@ -451,7 +451,7 @@
         // -- load runtime version
         taskPlayer.addEventListener('load', this._startTaskPlayer);
         taskPlayer.addEventListener('error', () => { throw new Error('could not load'); });
-        taskPlayer.src = playerConfig.directDownloadUrl + 'ib-runtime.' + this.definition.runtimeCompatibilityVersion + '.html';
+        taskPlayer.src = playerConfig.directDownloadUrl + 'ib-runtime.' + this.definition.runtimeVersion + '.html';
       }
 
       _startTaskPlayer = async () => {
