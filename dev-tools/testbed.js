@@ -5,7 +5,6 @@ const { Builder } = require('selenium-webdriver');
 const fs = require('fs');
 const http = require('http');
 const config = require('./config.json');
-const packageBuilder = require('./package-builder');
 
 const path = fs.realpathSync(`${__dirname}/..`);
 
@@ -14,6 +13,12 @@ const paths = {
   unit: `${path}/${config.unit}`,
   unitData: `${path}/${config.data}`,
   playerConfig: `${path}/${config.playerConfig}`
+};
+
+const buildPackage = () => {
+  delete require.cache[require.resolve('./package-builder')];
+  // eslint-disable-next-line global-require
+  require('./package-builder').build();
 };
 
 const sendStartCommand = async driver => {
@@ -59,7 +64,7 @@ const serve = () => {
 };
 
 (async () => {
-  packageBuilder.build();
+  buildPackage();
   const options = new Options();
   options.addArguments('--devtools');
   const driver = await new Builder()
@@ -72,7 +77,8 @@ const serve = () => {
 
   fs.watch(path, { recursive: true }, async (eventType, filename) => {
     if (filename && filename.startsWith('.')) {
-      packageBuilder.build();
+      // eslint-disable-next-line global-require
+      buildPackage();
       await driver.navigate().refresh();
       if (!config.host) await sendStartCommand(driver);
     }

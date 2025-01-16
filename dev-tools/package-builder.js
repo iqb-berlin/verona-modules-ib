@@ -3,23 +3,26 @@ const fs = require('fs');
 const path = require('path');
 
 const projectPath = path.join(__dirname, '/../');
-const runtimesDirectoryPath = `${projectPath}CBAItemBuilderSupportedRuntimes/`;
-const runtimesDirectoryPath = `${projectPath}units/`;
-const distDir = `${projectPath}dist/`;
 
 const prepare = () => {
+  const distDir = `${projectPath}dist/`;
   if (fs.existsSync(`${distDir}`)) {
     fs.rmSync(`${distDir}`, { recursive: true, force: true });
   }
   fs.mkdirSync(`${distDir}`);
+  fs.mkdirSync(`${distDir}/itcr`);
+  fs.mkdirSync(`${distDir}/itcr/runtimes`);
+  fs.mkdirSync(`${distDir}/itcr/units`);
 };
 
 const collectRunTimeVersions = () => {
+  const distDir = `${projectPath}dist`;
+  const runtimesSrcPath = `${projectPath}CBAItemBuilderSupportedRuntimes`;
   const dependencies = { };
   let runtimesDirContent = [];
 
   try {
-    runtimesDirContent = fs.readdirSync(runtimesDirectoryPath);
+    runtimesDirContent = fs.readdirSync(runtimesSrcPath);
   } catch (err) {
     console.err('Error reading the directory:', err);
     process.exit(1);
@@ -29,9 +32,9 @@ const collectRunTimeVersions = () => {
     if (file.startsWith('.')) return;
     let subFiles = [];
     try {
-      subFiles = fs.readdirSync(`${runtimesDirectoryPath}/${file}`);
+      subFiles = fs.readdirSync(`${runtimesSrcPath}/${file}`);
     } catch (subErr) { /* empty */ }
-    const stats = fs.statSync(`${runtimesDirectoryPath}/${file}`);
+    const stats = fs.statSync(`${runtimesSrcPath}/${file}`);
     if (!stats.isDirectory()) return;
     dependencies[file] = subFiles
       .reduce((agg, subFile) => {
@@ -43,21 +46,26 @@ const collectRunTimeVersions = () => {
         return agg;
       }, {});
 
-    fs.mkdirSync(`${distDir}/${file}`);
-    subFiles
-      .forEach(subFile => {
-        fs.copyFileSync(`${runtimesDirectoryPath}/${file}/${subFile}`, `${distDir}/${file}/${subFile}`);
-      });
+    subFiles.forEach(subFile => {
+      fs.cpSync(
+        `${runtimesSrcPath}/${file}/${subFile}`,
+        `${distDir}/itcr/runtimes/${file}/${subFile}`,
+        { recursive: true }
+      );
+    });
+    console.log(`* ${file}`);
   });
   return dependencies;
 };
 
 const collectUnits = () => {
+  const distDir = `${projectPath}dist`;
+  const unitsDirectoryPath = `${projectPath}units/`;
   const units = { };
   let unitsDirContent = [];
 
   try {
-    unitsDirContent = fs.readdirSync(runtimesDirectoryPath);
+    unitsDirContent = fs.readdirSync(unitsDirectoryPath);
   } catch (err) {
     console.err('Error reading the directory:', err);
     process.exit(1);
@@ -66,35 +74,47 @@ const collectUnits = () => {
   unitsDirContent.forEach(itemDir => {
     if (itemDir.startsWith('.')) return;
     // TODO unzip ?
-    const stats = fs.statSync(`${runtimesDirectoryPath}/${itemDir}`);
+    const stats = fs.statSync(`${unitsDirectoryPath}/${itemDir}`);
     if (!stats.isDirectory()) return;
-    if (!fs.existsSync(`${runtimesDirectoryPath}/${itemDir}/config.json`)) {
+    if (!fs.existsSync(`${unitsDirectoryPath}/${itemDir}/config.json`)) {
       console.log(`${itemDir}: config.json not found.`);
       return;
     }
     let config = {};
     try {
-      config = fs.readFileSync(`${runtimesDirectoryPath}/${itemDir}/config.json`).toJSON();
+      config = JSON.parse(fs.readFileSync(`${unitsDirectoryPath}/${itemDir}/config.json`, 'utf8'));
     } catch (e) {
-      console.log(`${itemDir}: config.json could not be parsed.`);
+      console.log(`${itemDir}: config.json could not be read.`);
       console.warn(e);
       return;
     }
-    fs.cpSync(`${runtimesDirectoryPath}/${itemDir}`, `${distDir}/${itemDir}`, { recursive: true });
-    const untitDef = {
-      task: config.tasks[0].name,
-      page: config.tasks[0].initialPage,
-      scope: 'A',
-      runtimeVersion: config.runtimeCompatibilityVersion,
-      name: config.name
-    };
-    fs.writeFileSync(`${runtimesDirectoryPath}/${itemDir}.ib2verona.json`, JSON.stringify(untitDef));
+
+    fs.cpSync(`${unitsDirectoryPath}/${itemDir}`, `${distDir}/itcr/units/${itemDir}`, { recursive: true });
+    let unitDef = {};
+    try {
+      unitDef = {
+        task: config.tasks[0].name,
+        page: config.tasks[0].initialPage,
+        scope: 'A',
+        runtimeVersion: config.runtimeCompatibilityVersion,
+        item: config.name
+      };
+    } catch (e) {
+      console.log(`${itemDir}: task 0 not found.`);
+      console.warn(e);
+      return;
+    }
+
+    fs.writeFileSync(`${distDir}/${itemDir}.ib2verona.json`, JSON.stringify(unitDef));
+
+    console.log(`* ${itemDir}`);
     units[itemDir] = config;
   });
   return units;
 };
 
 const createPlayers = dependencies => {
+  const distDir = `${projectPath}dist`;
   const playerFile = fs.readFileSync(`${projectPath}/src/ib-runtime.template.html`, 'utf8');
   Object.entries(dependencies)
     .forEach(([ibVersion, deps]) => {
@@ -108,9 +128,9 @@ const createPlayers = dependencies => {
         .replaceAll('«««« ibVersion »»»»', ibVersion)
         .replace('«««« ibRuntime.js »»»»', ibRuntimeJs)
         .replace('«««« ibRuntime.css »»»»', ibRuntimeCss);
-      const outputFileName = `${distDir}ib-runtime.${ibVersion}.html`;
+      const outputFileName = `${distDir}/itcr/runtimes/ib-runtime.${ibVersion}.html`;
       fs.writeFileSync(outputFileName, adjustedFile, 'utf8');
-      console.log(outputFileName);
+      console.log(`* ${outputFileName}`);
     });
 };
 
@@ -122,7 +142,7 @@ const build = () => {
   console.log('[create index files]');
   createPlayers(dependencies);
   console.log('[collect units]');
-  const units = collectUnits();
+  collectUnits();
   console.log('[done]');
   console.log('\n');
 };

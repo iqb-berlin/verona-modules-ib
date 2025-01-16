@@ -417,7 +417,7 @@
 
     const Unit = new class {
       definition = {
-        runtimeCompatibilityVersion : undefined,
+        runtimeVersion : undefined,
         item: undefined,
         task: undefined,
         scope: undefined
@@ -451,7 +451,7 @@
         // -- load runtime version
         taskPlayer.addEventListener('load', this._startTaskPlayer);
         taskPlayer.addEventListener('error', () => { throw new Error('could not load'); });
-        taskPlayer.src = playerConfig.directDownloadUrl + 'ib-runtime.' + this.definition.runtimeVersion + '.html';
+        taskPlayer.src = playerConfig.directDownloadUrl + 'runtimes/ib-runtime.' + this.definition.runtimeVersion + '.html';
       }
 
       _startTaskPlayer = async () => {
@@ -459,11 +459,11 @@
         // -- login
         Message.send.toTaskPlayer({ eventType: 'setUserId', id: 'verona' });
 
-        // item path
-        const itemPath = playerConfig.directDownloadUrl + 'items/' + this.definition.item;
+        // unit path
+        const unitPath = playerConfig.directDownloadUrl + 'units/' + this.definition.item;
 
         // -- get item config
-        const configFileCallResponse = await fetch(itemPath + '/config.json');
+        const configFileCallResponse = await fetch(unitPath + '/config.json');
         if (!configFileCallResponse.ok) {
           console.error(configFileCallResponse);
           throw new Error('Network response was not ok');
@@ -480,8 +480,8 @@
         Message.send.toTaskPlayer({
           eventType: 'addItem',
           itemConfig,
-          resourcePath: `${itemPath}/resources`,
-          externalResourcePath: `${itemPath}/external-resources`,
+          resourcePath: `${unitPath}/resources`,
+          externalResourcePath: `${unitPath}/external-resources`,
           libraryPathsMap: { MathJax: mathJaxCdnUrl === undefined ? 'math-jax unknown' : mathJaxCdnUrl }
         });
 
@@ -496,10 +496,14 @@
       }
 
       _setUnit = unitDef => {
-        this.definition.item = unitDef.item || new Error('1');
-        this.definition.task = unitDef.task || new Error('1');
-        this.definition.scope = unitDef.scope || new Error('1');
-        this.definition.runtimeCompatibilityVersion = unitDef.runtimeCompatibilityVersion || new Error('1');
+        Object.keys(this.definition)
+          .forEach(field => {
+            if (typeof unitDef[field] === 'undefined') {
+              console.log(unitDef);
+              throw new Error(`Invalid Unit Definition, ${field} missing`);
+            }
+            this.definition[field] = unitDef[field];
+          });
       }
 
       _setPlayerConfig = newPlayerConfig => {
