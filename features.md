@@ -3,8 +3,8 @@
 | Feature                                   | IB    | V/ITC  | Status                                               |
 |-------------------------------------------|-------|--------|------------------------------------------------------|
 | Aufgabe Anzeigen                          | Ja    | Ja     | Done                                                 |
-| Neue Aufgabe Laden                        | Ja    | Ja     | TODO                                                 |
-| Unit-Navigation aus der Aufgabe heraus    | Ja    | Ja     | TODO
+| Neue Aufgabe im selben Player Laden       | Ja    | Ja     | TODO                                                 |
+| Unit-Navigation aus der Aufgabe heraus    | Ja    | Ja     | Done
 | Unit-Navigation von außen                 | Ja    | Ja     | TODO
 | Seiten-Navigation von außen               | Nein? | Ja     | TODO
 | presentationProggress / responseProgress  | Nein? | Ja     | Prüfen

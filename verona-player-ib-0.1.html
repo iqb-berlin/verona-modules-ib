@@ -57,10 +57,6 @@
 <body>
 
 
-  <div id="clicka" style="cursor: pointer; position: fixed; top: 0; right: 0; height: 50px; width: 50px; border-radius: 50%; background: lightsteelblue; color: white; z-index: 10000">
-    æ
-  </div>
-
   <iframe id='ib-runtime-host' style='margin: 0; padding: 0; border: 1px solid indianred; position: fixed; height: calc(100vh - 2px); width: calc(100vw - 2px); background: white'></iframe>
 
   <script>
@@ -135,6 +131,13 @@
               },
               unitStateDataType
             });
+          }
+          case 'taskSwitchRequest': {
+            switch (message.request) {
+              case 'nextTask': return Message.send.vopUnitNavigationRequestedNotification('next');
+              case 'previousTask': return Message.send.vopUnitNavigationRequestedNotification('previous');
+            }
+            throw new Error(`Target not supported by verona-player-ib: '${message.request}'`);
           }
         }
       }
@@ -281,7 +284,7 @@
 
       _startTaskPlayer = async () => {
         // -- login
-        TaskPlayer.send({ eventType: 'setUserId', id: 'verona' });
+        TaskPlayer.send({ eventType: 'setUserId', id: 'verona:' + sessionId });
 
         // unit path
         const unitPath = playerConfig.directDownloadUrl + 'units/' + this.definition.item;
@@ -295,6 +298,14 @@
 
         const itemConfig = await configFileCallResponse.json();
         // TODO catch error
+
+        // -- set taskSequencer
+        TaskPlayer.send({
+          eventType: 'setTaskSequencer',
+          targetWindowType: 'parent', // !
+          targetOrigin: '*', // !,
+
+        });
 
         // -- push item to taskplayer
         const mathJaxCdnUrl = undefined;
@@ -327,27 +338,7 @@
 
       _setPlayerConfig = newPlayerConfig => {
         playerConfig = Object.assign(playerConfig, newPlayerConfig);
-        // Pages.applyPagingMode();
-        // Pages.goto(playerConfig.startPage || 1);
       };
-    }
-
-    const Loader = new class {
-      script = async fileUrl => {
-        await new Promise((res, rej) => {
-        fetch(fileUrl)
-          .then(r => r.ok ? r.blob() : rej)
-          .then(b => {
-            let ou = URL.createObjectURL(b),
-            el = document.createElement("script");
-            el.setAttribute("src", ou);
-            el.setAttribute("type", "text/javascript");
-            el.onload = () => res();
-            document.body.appendChild(el);
-          })
-          .catch(e => rej);
-        });
-      }
     }
 
     class VspRuntimeError extends Error {
@@ -385,18 +376,9 @@
 
     document.addEventListener("DOMContentLoaded", Message.send.vopReadyNotification);
 
-    document.addEventListener("vopPageNavigationCommand", event => {});
-    document.addEventListener("vopNavigationDeniedNotification", event => {});
-    document.addEventListener("vopPlayerConfigChangedNotification", event => {
-      // Unit.updatePlayerConfig(event.detail.playerConfig);
-    });
-
-    document.getElementById('clicka').addEventListener('click', () => {
-      TaskPlayer.send({
-        eventType: "getScoringResult"
-      });
-      console.log('        eventType: "getScoringResult"\n requested');
-    });
+    document.addEventListener("vopPageNavigationCommand", event => { /* TODO */ });
+    document.addEventListener("vopNavigationDeniedNotification", event => { /* TODO */ });
+    document.addEventListener("vopPlayerConfigChangedNotification", event => { /* TODO */ });
 
     setInterval(() => {
       TaskPlayer.send({
