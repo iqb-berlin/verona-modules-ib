@@ -49,175 +49,13 @@
       overflow: hidden;
       font-family: sans-serif;
       margin: 0;
-    }
-
-    #unit {
-      overflow: auto;
-      height: 100vh;
-      margin: 0 9em;
-    }
-
-    #unit.paged.buttons,
-    #unit.paged.separate {
-      overflow-y: auto;
-      height: 100vh;
-    }
-
-    #unit.paged fieldset:first-of-type {
-      display: block
-    }
-
-    #unit.paged.buttons fieldset,
-    #unit.paged.separate fieldset {
-      overflow-y: auto;
-      height: calc(100% - 100px);
-      padding: 50px 0;
-      border: 0;
-    }
-
-    /* add some whitespace in scrollmode, to make it possible to get last pages on the top even if they are small */
-    #unit.paged.concat-scroll:after,
-    #unit.paged.concat-scroll-snap:after {
-      height: 100%;
-      display: block;
-      content: " ";
-    }
-
-    #unit.concat-scroll-snap {
-      scroll-snap-type: y proximity;
-    }
-
-    #unit.concat-scroll-snap fieldset {
-      scroll-snap-align: start;
-    }
-
-    .page-bottom-anchor {
-      display: block;
-      height: 50px;
-    }
-
-    .vsp-navigation-tier {
-      position: fixed;
-    }
-
-    .vsp-navigation-tier button {
-      padding: 2px 6px;
-      cursor: pointer;
-    }
-
-    .vsp-navigation-tier button,
-    vsp-namehint,
-    vsp-message {
-      border: none;
-      border-radius: 2px;
-      box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.75);
-      background: rgba(0, 0, 0, 0.75);
-      color: white;
-      font-size: small;
-    }
-
-    vsp-namehint {
-      padding: 1px;
-    }
-
-    vsp-message {
-      position: fixed;
-      display: none;
-      max-height: 300px;
-      right: 20px;
-      top: 20px;
-      padding: 10px;
-      width: 300px;
-      filter: blur(4px);
-      opacity: 0;
-      transform: scale(2);
-      transform-origin: center;
-      animation: flyin 0.5s ease forwards;
-    }
-
-    vsp-message [onclick] {
-      cursor: pointer;
-    }
-
-    vsp-message [onclick]:hover {
-      text-decoration: underline;
-      color: grey;
-    }
-
-    vsp-message.error {
-      background: rgba(150, 0, 0, 0.75);
-    }
-
-    vsp-pointer {
-      position: absolute;
-      height: 30px;
-      width: 30px;
-    }
-
-    vsp-pointer:after {
-      position: relative;
-      line-height: 25px;
-      text-shadow: 0 0 5px rgba(0,0,0,0.75);
-      display: inline-block;
-      filter: blur(4px);
-      opacity: 0;
-      transform: scale(2);
-      transform-origin: center;
-      animation: flyin 0.5s ease forwards;
-      font-size: 30px;
-      content: "►";
-    }
-
-    vsp-message-close {
-      position: absolute;
-      right: 5px;
-      top: 2px;
-      cursor: pointer;
-    }
-
-    .vsp-navigation-tier button:hover,
-    vsp-message-close:hover {
-      color: grey
-    }
-
-    .vsp-navigation-tier button:disabled {
-      box-shadow: 0 0 5px 0 rgba(100, 100, 100, 0.75);
-      background: rgba(0, 0, 0, 0.75);
-      color: grey;
-      cursor: auto;
-    }
-
-    #vsp-meta dl dd {
-      display: inline;
-      margin: 0;
-    }
-
-    #vsp-meta dl dd:after {
-      display: block;
-      content: '';
-    }
-
-    #vsp-meta dl dt {
-      display: inline-block;
-      min-width: 250px;
-    }
-
-    @keyframes flyin {
-      to {
-        filter: blur(0);
-        transform: scale(1);
-        opacity: 1;
-      }
+      background: #5e93c5
     }
   </style>
 
 </head>
-<body style="background: #5e93c5">
+<body>
 
-  <vsp-message>
-    <vsp-message-content></vsp-message-content>
-    <vsp-message-close>✖</vsp-message-close>
-  </vsp-message>
 
   <div id="clicka" style="cursor: pointer; position: fixed; top: 0; right: 0; height: 50px; width: 50px; border-radius: 50%; background: lightsteelblue; color: white; z-index: 10000">
     æ
@@ -227,13 +65,10 @@
 
   <script>
     const unitStateDataType = "iqb-standard@1.3";
-    const unitDefinitionType = "verona-player-simple-6.0";
 
-    const taskPlayer = document.getElementById('ib-runtime-host');
+    const taskPlayerElem = document.getElementById('ib-runtime-host');
 
     const playerMetaData = JSON.parse(document.querySelector('script[type="application/ld+json"]').innerText)
-
-    const pagingModes = ["separate", "concat-scroll", "concat-scroll-snap", "buttons"];
 
     let playerConfig = {
       logPolicy: 'eager', // "disabled" | "lean" | "rich" | "debug"
@@ -248,13 +83,6 @@
     }
 
     let sessionId = "";
-
-    const isDefined = v => (typeof v !== "undefined");
-    const isEmpty = object => {
-      // noinspection LoopStatementThatDoesntLoopJS
-      for(let property in object) return false;
-      return true;
-    }
 
     const Format = new class {
       parse = format => {
@@ -276,54 +104,89 @@
       };
     }
 
-    const Time = new class {
-      throttle = (callback, limit) => {
-        let waiting = false;
-        return function () {
-          if (waiting) return;
-          callback.apply(this, arguments);
-          waiting = true;
-          setTimeout(() => {
-            waiting = false;
-          }, limit);
-        }
-      }
-
-      debounce = (callback, limit, debounceCallback) => {
-        let handle = null;
-        return function () {
-          if (typeof debounceCallback === "function") {
-            debounceCallback.apply(this, arguments);
-          }
-          clearTimeout(handle);
-          handle = setTimeout(() => {
-            callback.apply(this, arguments);
-          }, limit);
-        }
-      }
-    }
-
     const TaskPlayer = new class {
-      receive = tyymessage => {
-        console.log('got', message);
+      receive = (type, message) => {
+        console.log('got', type);
+        switch (type) {
+          case 'getTasksStateReturn':
+            return Message.send.vopStateChangedNotification({
+              unitState: {
+                dataParts: {
+                  variables: JSON.stringify(IBVariables.toIQBStandard(message.state.variables)),
+                  fullState: JSON.stringify({ // VERONA 6 only allows one UnitStateDatatype, so have to wrap the full state here
+                    id: 'fullState',
+                    value: JSON.stringify(message.state),
+                    state: 'VALUE_CHANGED'
+                  })
+                },
+                presentationProgress: 'some', // TODO
+                responseProgress: 'some', // TODO
+              },
+              unitStateDataType
+            });
+          case 'getScoringResultReturn': {
+            return Message.send.vopStateChangedNotification({
+              unitState: {
+                dataParts: {
+                  scores: JSON.stringify(message.result),
+                },
+                presentationProgress: 'some', // TODO
+                responseProgress: 'some', // TODO
+              },
+              unitStateDataType
+            });
+          }
+        }
       }
       send = msg => {
-        taskPlayer.contentWindow.postMessage(JSON.stringify(msg), { targetOrigin: '*'});
+        taskPlayerElem.contentWindow.postMessage(JSON.stringify(msg), { targetOrigin: '*'});
       };
+    }
+
+    const IBVariables = new class {
+      toIQBStandard = variablesList => Object.entries(variablesList)
+        .map(([hostItem, variablesList]) => {
+          console.log(hostItem, variablesList);
+          return Object.values(variablesList)
+            .map(variable => ({
+              id: this._toIQBStandardVarId(variable.name),
+              state: "VALUE_CHANGED",
+              value: this._toIQBStandardValueType(variable.value),
+              subForm: hostItem
+            }));
+        });
+
+      _toIQBStandardVarId = variableName => variableName
+        .replaceAll(/[^0-9a-zA-Z_]/g, c => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
+
+      _toIQBStandardValueType = value => {
+        if (typeof value === 'undefined') return null;
+        if (['number', 'string', 'boolean'].includes(typeof value)) return value;
+        if (Array.isArray(value)) {
+          const types = value.reduce((agg, value) => {
+            if (!agg.includes(typeof value)) {
+              agg.push(typeof value);
+            }
+            return agg;
+          }, []);
+          return value.map(types.length > 1 ? JSON.stringify : this._toIQBStandardValueType);
+        }
+        return JSON.stringify(value);
+      }
     }
 
     const Message = new class {
       send = new class {
-        _lastStates = {
-          playerState: null,
-          unitState: null
-        };
 
-        vopStateChangedNotification = () => {
-          const message = this._createStateMsg();
-          if (message.playerState || message.unitState || message.log) {
-            this._send(message);
-          }
+        vopStateChangedNotification = ({unitState, playerState, log}) => {
+          this._send({
+            type: 'vopStateChangedNotification',
+            sessionId: sessionId,
+            timeStamp: Date.now(),
+            unitState,
+            playerState,
+            log
+          });
         };
 
         vopReadyNotification = () => {
@@ -362,50 +225,6 @@
           window.parent.postMessage(msg, '*');
           document.dispatchEvent(new CustomEvent('sent:' + msg.type, {detail: msg}));
         }
-
-        _createStateMsg = (complete = false) => {
-          const message = {
-            type: 'vopStateChangedNotification',
-            sessionId: sessionId,
-            timeStamp: Date.now(),
-          }
-
-          const playerState = this._getPlayerState();
-          if (complete || (JSON.stringify(playerState) !== JSON.stringify(this._lastStates.playerState))) {
-            this._lastStates.playerState = playerState;
-            if (!isEmpty(playerState)) {
-              message.playerState = playerState;
-            }
-          }
-
-          const unitState = this._getUnitState();
-          if (complete || (JSON.stringify(unitState) !== JSON.stringify(this._lastStates.unitState))) {
-            message.unitState = unitState;
-            this._lastStates.unitState = unitState;
-          }
-
-          if (Log.hasNew()) {
-            message.log = Log.next();
-          }
-
-          return message;
-        }
-
-        _getPlayerState = () => {
-          const playerState = {};
-          if (Pages.hasPages) {
-            playerState.validPages = Object.keys(Pages.validPages).map(id => ({id, label: Pages.validPages[id]}))
-            playerState.currentPage = Pages.currentPage.toString()
-          }
-          return playerState;
-        }
-
-        _getUnitState = () => ({
-          dataParts: Unit.getData(),
-          presentationProgress: Unit.getPresentationProgress(),
-          responseProgress: Unit.getResponseProgress(),
-          unitStateDataType
-        });
       }
 
       receive = (type, data) => {
@@ -455,9 +274,9 @@
 
       _loadTaskPlayer = async () => {
         // -- load runtime version
-        taskPlayer.addEventListener('load', this._startTaskPlayer);
-        taskPlayer.addEventListener('error', () => { throw new Error('could not load'); });
-        taskPlayer.src = playerConfig.directDownloadUrl + 'runtimes/ib-runtime.' + this.definition.runtimeVersion + '.html';
+        taskPlayerElem.addEventListener('load', this._startTaskPlayer);
+        taskPlayerElem.addEventListener('error', () => { throw new Error('could not load'); });
+        taskPlayerElem.src = playerConfig.directDownloadUrl + 'runtimes/ib-runtime.' + this.definition.runtimeVersion + '.html';
       }
 
       _startTaskPlayer = async () => {
@@ -540,9 +359,6 @@
     }
 
     window.addEventListener('message', event => {
-      console.log(typeof event.data);
-      console.log(typeof event.data.type);
-
       if (typeof event.data === 'object'
         && typeof event.data.type !== 'undefined'
         && event.data.type.startsWith('vop')
@@ -551,7 +367,8 @@
       } else if (typeof event.data === 'string'
         && event.data.includes('"eventType":')
       ) {
-        const data = JSON.parse(event.data);TaskPlayer.receive(data.eventType, data);
+        const data = JSON.parse(event.data);
+        TaskPlayer.receive(data.eventType, data);
       } else {
         console.log('unknown message: ', event.data);
       }
@@ -568,78 +385,29 @@
 
     document.addEventListener("DOMContentLoaded", Message.send.vopReadyNotification);
 
-    document.addEventListener("vopPageNavigationCommand", event => {
-    });
-    document.addEventListener("vopNavigationDeniedNotification", event => {
-    });
-
+    document.addEventListener("vopPageNavigationCommand", event => {});
+    document.addEventListener("vopNavigationDeniedNotification", event => {});
     document.addEventListener("vopPlayerConfigChangedNotification", event => {
       // Unit.updatePlayerConfig(event.detail.playerConfig);
     });
 
-    window.addEventListener('blur', () => {
-      Message.send.vopWindowFocusChangedNotification(document.hasFocus());
-    });
-
-    window.addEventListener('focus', () => {
-      Message.send.vopWindowFocusChangedNotification(document.hasFocus());
-    });
-
-  /*
-    PlayerUI.addEventListener('keypress', PlayerUI.itemElements, PlayerUI.preventFromImplicitSubmission);
-
-    PlayerUI.addEventListener('change', PlayerUI.itemElements, Message.send.vopStateChangedNotification);
-    PlayerUI.addEventListener('programmaticallyChange', PlayerUI.itemElements, Message.send.vopStateChangedNotification);
-    PlayerUI.addEventListener('keyup', PlayerUI.itemElements,
-      Time.debounce(Message.send.vopStateChangedNotification, parseInt(playerSettings.debounceKeyboardEvents), 10)
-    );
-
-    PlayerUI.addEventListener('change', PlayerUI.itemElements, Answers.setStatusChanged);
-    PlayerUI.addEventListener('programmaticallyChange', PlayerUI.itemElements, Answers.setStatusChanged);
-    PlayerUI.addEventListener('keyup', PlayerUI.itemElements, Answers.setStatusChanged);
-
-    PlayerUI.addEventListener('click', '#next-page', () => Pages.goto('#next'));
-    PlayerUI.addEventListener('click', '#prev-page', () => Pages.goto('#previous'));
-
-    PlayerUI.addEventListener('click', '#prev-unit', () => {
-      Message.send.vopUnitNavigationRequestedNotification("previous");
-    });
-    PlayerUI.addEventListener('click', '#next-unit', () => {
-      Message.send.vopUnitNavigationRequestedNotification("next");
-    });
-    PlayerUI.addEventListener('click', '#first-unit', () => {
-      Message.send.vopUnitNavigationRequestedNotification("first");
-    });
-    PlayerUI.addEventListener('click', '#last-unit', () => {
-      Message.send.vopUnitNavigationRequestedNotification("last");
-    });
-    PlayerUI.addEventListener('click', '#end-unit', () => {
-      Message.send.vopUnitNavigationRequestedNotification("end");
-    });
-    PlayerUI.addEventListener('click', 'vsp-message-close', () => {
-      PlayerUI.toggleMessage();
-    });
-
-    // make the player globally available for tests/extensions
-    window.vsp = { PlayerUI, Message, Pages, Log };
-
-    */
-
     document.getElementById('clicka').addEventListener('click', () => {
-      // TaskPlayer.send({
-      //   eventType: "getScoringResult"
-      // });
+      TaskPlayer.send({
+        eventType: "getScoringResult"
+      });
+      console.log('        eventType: "getScoringResult"\n requested');
+    });
+
+    setInterval(() => {
       TaskPlayer.send({
         eventType: "getTasksState"
       });
-      // TaskPlayer.send({
-      //   eventType: "getTasksStateReturn"
-      // });
-      // TaskPlayer.send({
-      //   eventType: "getTaskReturn"
-      // });
-      console.log('state requested');
-    });
+    }, 2500);
+    setInterval(() => {
+      TaskPlayer.send({
+        eventType: "getScoringResult"
+      });
+    }, 5000);
 
   </script>
 </body>
