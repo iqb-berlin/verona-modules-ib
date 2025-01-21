@@ -15,7 +15,7 @@
           "lang": "en"
         }
       ],
-      "version": "0.0.1",
+      "version": "0.1.0",
       "specVersion": "6.0",
       "description": [
         {
@@ -60,11 +60,12 @@
   <iframe id='ib-runtime-host' style='margin: 0; padding: 0; border: 1px solid indianred; position: fixed; height: calc(100vh - 2px); width: calc(100vw - 2px); background: white'></iframe>
 
   <script>
-    const unitStateDataType = "iqb-standard@1.3";
+    /* eslint-disable new-parens, class-methods-use-this, max-classes-per-file, no-use-before-define, no-console */
+    const unitStateDataType = 'iqb-standard@1.3';
 
     const taskPlayerElem = document.getElementById('ib-runtime-host');
 
-    const playerMetaData = JSON.parse(document.querySelector('script[type="application/ld+json"]').innerText)
+    const playerMetaData = JSON.parse(document.querySelector('script[type="application/ld+json"]').innerText);
 
     let playerConfig = {
       logPolicy: 'eager', // "disabled" | "lean" | "rich" | "debug"
@@ -72,51 +73,30 @@
       unitTitle: 'Unit',
       unitId: 'unit',
       enabledNavigationTargets: [], // can contain  "next" "previous" "first" "last" "end"
-      pagingMode: "buttons", // "separate" | "concat-scroll" | "concat-scroll-snap" | "buttons"
-      printMode: "off",
+      pagingMode: 'buttons', // "separate" | "concat-scroll" | "concat-scroll-snap" | "buttons"
+      printMode: 'off',
       startPage: null,
-      directDownloadUrl: null,
-    }
+      directDownloadUrl: null
+    };
 
-    let sessionId = "";
-
-    const Format = new class {
-      parse = format => {
-        const parts = format.match(/(^.+)[-@](\d+)(.(\d+))?(.(\d+))?(-(.+))?$/);
-        return parts ? {
-          format: parts[1] || format,
-          major: parseInt(parts[2] || 0),
-          minor: parseInt(parts[4] || 0),
-          patch: parseInt(parts[6] || 0),
-          label: parts[8] || ''
-        } : format;
-      }
-      isSupportedBy = (format1, format2) => {
-        const v1 = Format.parse(format1);
-        const v2 = Format.parse(format2);
-        if (v1.format !== v2.format) return false;
-        if (v1.major !== v2.major) return false;
-        return (v1.minor <= v2.minor);
-      };
-    }
+    let sessionId = '';
 
     const TaskPlayer = new class {
       receive = (type, message) => {
-        console.log('got', type);
         switch (type) {
           case 'getTasksStateReturn':
             return Message.send.vopStateChangedNotification({
               unitState: {
                 dataParts: {
                   variables: JSON.stringify(IBVariables.toIQBStandard(message.state.variables)),
-                  fullState: JSON.stringify({ // VERONA 6 only allows one UnitStateDatatype, so have to wrap the full state here
+                  fullState: JSON.stringify({ // VERONA 6 only allows one UnitStateDatatype, so have to wrap
                     id: 'fullState',
                     value: JSON.stringify(message.state),
                     state: 'VALUE_CHANGED'
                   })
                 },
                 presentationProgress: 'some', // TODO
-                responseProgress: 'some', // TODO
+                responseProgress: 'some' // TODO
               },
               unitStateDataType
             });
@@ -124,10 +104,10 @@
             return Message.send.vopStateChangedNotification({
               unitState: {
                 dataParts: {
-                  scores: JSON.stringify(message.result),
+                  scores: JSON.stringify(message.result)
                 },
                 presentationProgress: 'some', // TODO
-                responseProgress: 'some', // TODO
+                responseProgress: 'some' // TODO
               },
               unitStateDataType
             });
@@ -136,55 +116,58 @@
             switch (message.request) {
               case 'nextTask': return Message.send.vopUnitNavigationRequestedNotification('next');
               case 'previousTask': return Message.send.vopUnitNavigationRequestedNotification('previous');
+              default: throw new Error(`Target not supported by verona-player-ib: '${message.request}'`);
             }
-            throw new Error(`Target not supported by verona-player-ib: '${message.request}'`);
+          }
+          default: {
+            return null; // satisfy eslint
           }
         }
-      }
-      send = msg => {
-        taskPlayerElem.contentWindow.postMessage(JSON.stringify(msg), { targetOrigin: '*'});
       };
-    }
+
+      send = msg => {
+        taskPlayerElem.contentWindow.postMessage(JSON.stringify(msg), { targetOrigin: '*' });
+      };
+    };
 
     const IBVariables = new class {
-      toIQBStandard = variablesList => Object.entries(variablesList)
+      toIQBStandard = variablesMap => Object.entries(variablesMap)
         .map(([hostItem, variablesList]) => {
           console.log(hostItem, variablesList);
           return Object.values(variablesList)
             .map(variable => ({
-              id: this._toIQBStandardVarId(variable.name),
-              state: "VALUE_CHANGED",
-              value: this._toIQBStandardValueType(variable.value),
+              id: IBVariables.#toIQBStandardVarId(variable.name),
+              state: 'VALUE_CHANGED',
+              value: IBVariables.#toIQBStandardValueType(variable.value),
               subForm: hostItem
             }));
         });
 
-      _toIQBStandardVarId = variableName => variableName
+      #toIQBStandardVarId = variableName => variableName
         .replaceAll(/[^0-9a-zA-Z_]/g, c => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
 
-      _toIQBStandardValueType = value => {
+      #toIQBStandardValueType = value => {
         if (typeof value === 'undefined') return null;
         if (['number', 'string', 'boolean'].includes(typeof value)) return value;
         if (Array.isArray(value)) {
-          const types = value.reduce((agg, value) => {
-            if (!agg.includes(typeof value)) {
-              agg.push(typeof value);
+          const types = value.reduce((agg, valueItem) => {
+            if (!agg.includes(typeof valueItem)) {
+              agg.push(typeof valueItem);
             }
             return agg;
           }, []);
-          return value.map(types.length > 1 ? JSON.stringify : this._toIQBStandardValueType);
+          return value.map(types.length > 1 ? JSON.stringify : this.#toIQBStandardValueType);
         }
         return JSON.stringify(value);
-      }
-    }
+      };
+    };
 
     const Message = new class {
       send = new class {
-
-        vopStateChangedNotification = ({unitState, playerState, log}) => {
-          this._send({
+        vopStateChangedNotification = ({ unitState, playerState, log }) => {
+          this.#send({
             type: 'vopStateChangedNotification',
-            sessionId: sessionId,
+            sessionId,
             timeStamp: Date.now(),
             unitState,
             playerState,
@@ -193,47 +176,45 @@
         };
 
         vopReadyNotification = () => {
-          this._send({
+          this.#send({
             type: 'vopReadyNotification',
             metadata: playerMetaData
           });
         };
 
         vopUnitNavigationRequestedNotification = target => {
-          this._send({
+          this.#send({
             type: 'vopUnitNavigationRequestedNotification',
             sessionId,
-            target,
+            target
           });
         };
 
         vopWindowFocusChangedNotification = hasFocus => {
-          this._send({
+          this.#send({
             type: 'vopWindowFocusChangedNotification',
             sessionId,
             hasFocus
           });
-        }
+        };
 
         vopRuntimeErrorNotification = (code, message) => {
-          this._send({
+          this.#send({
             type: 'vopRuntimeErrorNotification',
             sessionId,
             code,
             message
-          })
-        }
+          });
+        };
 
-        _send = msg => {
+        #send = msg => {
           window.parent.postMessage(msg, '*');
-          document.dispatchEvent(new CustomEvent('sent:' + msg.type, {detail: msg}));
-        }
-      }
+          document.dispatchEvent(new CustomEvent(`sent:${msg.type}`, { detail: msg }));
+        };
+      };
 
       receive = (type, data) => {
-        if (data.eventType === "taskPlayerReady") {
-          console.log(data);
-        } else if (type === "vopStartCommand") {
+        if (type === 'vopStartCommand') {
           Unit.start(data);
           document.dispatchEvent(new CustomEvent(type, { detail: data }));
         } else if (sessionId && (data.sessionId !== sessionId) && type && type.startsWith('vop')) {
@@ -244,53 +225,49 @@
           console.warn(`Message before first vopStartCommand, ignored: ${type}`, data);
         }
       };
-    }
+    };
 
     const Unit = new class {
       definition = {
-        runtimeVersion : undefined,
+        runtimeVersion: undefined,
         item: undefined,
         task: undefined,
-        scope: undefined
-      }
+        scope: undefined,
+        package: undefined
+      };
 
       start = async data => {
         if (!data.sessionId) {
-          throw new VspRuntimeError("session-id-missing", "Session-Id is missing.");
+          throw new VspRuntimeError('session-id-missing', 'Session-Id is missing.');
         }
         sessionId = data.sessionId;
         if (!data.unitDefinition) {
-          throw new VspRuntimeError("unit-definition-missing", "Unit-Definition is missing.")
+          throw new VspRuntimeError('unit-definition-missing', 'Unit-Definition is missing.');
         }
-        this._setPlayerConfig(data.playerConfig || {});
-
-        console.log('what now?');
-
+        this.#setPlayerConfig(data.playerConfig || {});
 
         const ib2veronaFile = JSON.parse(data.unitDefinition);
         // TODO catch error
-        this._setUnit(ib2veronaFile);
+        this.#setUnit(ib2veronaFile);
+        await this.#loadTaskPlayer();
+      };
 
-
-        await this._loadTaskPlayer();
-      }
-
-      _loadTaskPlayer = async () => {
+      #loadTaskPlayer = async () => {
         // -- load runtime version
-        taskPlayerElem.addEventListener('load', this._startTaskPlayer);
+        taskPlayerElem.addEventListener('load', this.#startTaskPlayer);
         taskPlayerElem.addEventListener('error', () => { throw new Error('could not load'); });
-        taskPlayerElem.src = playerConfig.directDownloadUrl + 'runtimes/ib-runtime.' + this.definition.runtimeVersion + '.html';
-      }
+        taskPlayerElem.src = `${playerConfig.directDownloadUrl}/${this.definition.package}/runtimes/ib-runtime.${this.definition.runtimeVersion}.html`;
+      };
 
-      _startTaskPlayer = async () => {
+      #startTaskPlayer = async () => {
         // -- login
-        TaskPlayer.send({ eventType: 'setUserId', id: 'verona:' + sessionId });
+        TaskPlayer.send({ eventType: 'setUserId', id: `verona:${sessionId}` });
 
         // unit path
-        const unitPath = playerConfig.directDownloadUrl + 'units/' + this.definition.item;
+        const unitPath = `${playerConfig.directDownloadUrl}/${this.definition.package}/units/${this.definition.item}`;
 
         // -- get item config
-        const configFileCallResponse = await fetch(unitPath + '/config.json');
+        const configFileCallResponse = await fetch(`${unitPath}/config.json`);
         if (!configFileCallResponse.ok) {
           console.error(configFileCallResponse);
           throw new Error('Network response was not ok');
@@ -302,13 +279,12 @@
         // -- set taskSequencer
         TaskPlayer.send({
           eventType: 'setTaskSequencer',
-          targetWindowType: 'parent', // !
-          targetOrigin: '*', // !,
-
+          targetWindowType: 'parent',
+          targetOrigin: '*'
         });
 
         // -- push item to taskplayer
-        const mathJaxCdnUrl = undefined;
+        const mathJaxCdnUrl = undefined; // TODO
         TaskPlayer.send({
           eventType: 'addItem',
           itemConfig,
@@ -323,26 +299,26 @@
           task: this.definition.task,
           scope: this.definition.scope
         });
-      }
+      };
 
-      _setUnit = unitDef => {
+      #setUnit = unitDef => {
         Object.keys(this.definition)
           .forEach(field => {
             if (typeof unitDef[field] === 'undefined') {
-              console.log(unitDef);
               throw new Error(`Invalid Unit Definition, ${field} missing`);
             }
             this.definition[field] = unitDef[field];
           });
-      }
+      };
 
-      _setPlayerConfig = newPlayerConfig => {
+      #setPlayerConfig = newPlayerConfig => {
         playerConfig = Object.assign(playerConfig, newPlayerConfig);
       };
-    }
+    };
 
     class VspRuntimeError extends Error {
       name = 'VspRuntimeError';
+
       constructor(code, message) {
         super(message);
         this.code = code;
@@ -354,7 +330,7 @@
         && typeof event.data.type !== 'undefined'
         && event.data.type.startsWith('vop')
       ) {
-        Message.receive(event.data.type, event.data)
+        Message.receive(event.data.type, event.data);
       } else if (typeof event.data === 'string'
         && event.data.includes('"eventType":')
       ) {
@@ -366,7 +342,7 @@
     }, false);
 
     window.addEventListener('error', event => {
-      return; // TODO check if window == self
+      // TODO check if window == self
       if (event.error.name === VspRuntimeError.name) {
         Message.send.vopRuntimeErrorNotification(event.error.code, event.error.message);
       } else {
@@ -374,23 +350,22 @@
       }
     }, false);
 
-    document.addEventListener("DOMContentLoaded", Message.send.vopReadyNotification);
+    document.addEventListener('DOMContentLoaded', Message.send.vopReadyNotification);
 
-    document.addEventListener("vopPageNavigationCommand", event => { /* TODO */ });
-    document.addEventListener("vopNavigationDeniedNotification", event => { /* TODO */ });
-    document.addEventListener("vopPlayerConfigChangedNotification", event => { /* TODO */ });
+    document.addEventListener('vopPageNavigationCommand', () => { /* TODO */ });
+    document.addEventListener('vopNavigationDeniedNotification', () => { /* TODO */ });
+    document.addEventListener('vopPlayerConfigChangedNotification', () => { /* TODO */ });
 
     setInterval(() => {
       TaskPlayer.send({
-        eventType: "getTasksState"
+        eventType: 'getTasksState'
       });
     }, 2500);
     setInterval(() => {
       TaskPlayer.send({
-        eventType: "getScoringResult"
+        eventType: 'getScoringResult'
       });
     }, 5000);
-
   </script>
 </body>
 </html>
