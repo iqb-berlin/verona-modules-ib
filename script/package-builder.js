@@ -38,28 +38,23 @@ const prepare = () => {
   fs.mkdirSync(`${tmpDir}/package/units`);
 };
 
-const collectRunTimeVersions = () => {
+const collectRunTimeVersions = units => {
   console.log('[collect file names for IB runtime versions]');
   const runtimesSrcPath = `${projectPath}CBAItemBuilderSupportedRuntimes`;
   const dependencies = { };
-  let runtimesDirContent = [];
 
-  try {
-    runtimesDirContent = fs.readdirSync(runtimesSrcPath);
-  } catch (err) {
-    console.err('Error reading the directory:', err);
-    process.exit(1);
-  }
+  const neededRuntimes = units
+    .reduce((agg, unit) => {
+      if (!agg.includes(unit.unitDef.runtimeVersion)) agg.push(unit.unitDef.runtimeVersion);
+      return agg;
+    }, []);
 
-  runtimesDirContent.forEach(file => {
-    if (file.startsWith('.')) return;
+  neededRuntimes.forEach(runtimeVersion => {
     let subFiles = [];
     try {
-      subFiles = fs.readdirSync(`${runtimesSrcPath}/${file}`);
+      subFiles = fs.readdirSync(`${runtimesSrcPath}/${runtimeVersion}`);
     } catch (subErr) { /* empty */ }
-    const stats = fs.statSync(`${runtimesSrcPath}/${file}`);
-    if (!stats.isDirectory()) return;
-    dependencies[file] = subFiles
+    dependencies[runtimeVersion] = subFiles
       .reduce((agg, subFile) => {
         if (!agg[path.extname(subFile)]) {
           // eslint-disable-next-line no-param-reassign
@@ -71,12 +66,12 @@ const collectRunTimeVersions = () => {
 
     subFiles.forEach(subFile => {
       fs.cpSync(
-        `${runtimesSrcPath}/${file}/${subFile}`,
-        `${tmpDir}/package/runtimes/${file}/${subFile}`,
+        `${runtimesSrcPath}/${runtimeVersion}/${subFile}`,
+        `${tmpDir}/package/runtimes/${runtimeVersion}/${subFile}`,
         { recursive: true }
       );
     });
-    console.log(`* ${file}`);
+    console.log(`* ${runtimeVersion}`);
   });
   return dependencies;
 };
@@ -115,13 +110,13 @@ const collectUnits = async packageId => {
     process.exit(1);
   }
 
+  // use traditional loop because of await inside
   // eslint-disable-next-line no-restricted-syntax
   for (const fileOrDir of unitsDirContent) {
-    if (path.extname(fileOrDir).toLocaleLowerCase() !== '.zip') break;
-
+    // eslint-disable-next-line no-continue
+    if (path.extname(fileOrDir).toLocaleLowerCase() !== '.zip') continue;
     const itemName = path.basename(fileOrDir, '.zip');
 
-    console.log(`>>> ${unitsPath}/${itemName}`);
     if (!fs.existsSync(`${unitsPath}/${itemName}`)) {
       try {
         // eslint-disable-next-line no-await-in-loop
@@ -129,15 +124,15 @@ const collectUnits = async packageId => {
         console.log(`* ${itemName}: zip extracted`);
       } catch (err) {
         console.log(`* ${itemName}: could not extract zip`);
-        break;
+        // eslint-disable-next-line no-continue
+        continue;
       }
-    } else {
-      console.log(`* ${itemName}: already present`);
     }
 
     if (!fs.existsSync(`${unitsPath}/${itemName}/config.json`)) {
       console.log(`* ${itemName}: config.json not found.`);
-      break;
+      // eslint-disable-next-line no-continue
+      continue;
     }
     let config = {};
     try {
@@ -145,7 +140,8 @@ const collectUnits = async packageId => {
     } catch (e) {
       console.log(`${itemName}: config.json could not be read.`);
       console.warn(e);
-      break;
+      // eslint-disable-next-line no-continue
+      continue;
     }
 
     fs.cpSync(`${unitsPath}/${itemName}`, `${tmpDir}/package/units/${itemName}`, { recursive: true });
@@ -162,7 +158,8 @@ const collectUnits = async packageId => {
     } catch (e) {
       console.log(`* ${itemName}: task 0 not found.`);
       console.warn(e);
-      break;
+      // eslint-disable-next-line no-continue
+      continue;
     }
 
     fs.writeFileSync(`${distDir}/${itemName}.voud.json`, JSON.stringify(unitDef));
@@ -214,7 +211,6 @@ const zipPackage = packageId => {
 };
 
 const createUnitXML = (packageId, unit) => {
-  console.log(unit.unitDef);
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <Unit
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -302,10 +298,10 @@ const createXmlFiles = (packageId, units) => {
 const build = async () => {
   const packageId = getPackageId();
   prepare();
-  const dependencies = collectRunTimeVersions(); // TODO only those which are needed
-  createIndexFiles(dependencies);
   const units = await collectUnits(packageId);
   createXmlFiles(packageId, units);
+  const dependencies = collectRunTimeVersions(units); // TODO only those which are needed
+  createIndexFiles(dependencies);
   addPlayer();
   zipPackage(packageId);
 };
