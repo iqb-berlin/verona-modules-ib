@@ -4,6 +4,8 @@ const path = require('path');
 const ZipAFolder = require('zip-a-folder');
 const convert = require('xml-js');
 const version = require('../package.json').version;
+const extract = require('extract-zip')
+const { unzip } = require("selenium-webdriver/io/zip");
 
 const projectPath = path.join(__dirname, '/../');
 const distDir = `${projectPath}dist`;
@@ -100,38 +102,53 @@ const readUnitMetaDataIfExists = itemDir => {
   }
 };
 
-const collectUnits = packageId => {
+const collectUnits = async packageId => {
   console.log('[collect units]');
-  const unitsDirectoryPath = `${projectPath}units/`;
+  const unitsPath = `${projectPath}units`;
   const units = [];
   let unitsDirContent = [];
 
   try {
-    unitsDirContent = fs.readdirSync(unitsDirectoryPath);
+    unitsDirContent = fs.readdirSync(unitsPath);
   } catch (err) {
-    console.err('Error reading the directory:', err);
+    console.error('Error reading the directory:', err);
     process.exit(1);
   }
 
-  unitsDirContent.forEach(itemDir => {
-    if (itemDir.startsWith('.')) return;
-    // TODO unzip ?
-    const stats = fs.statSync(`${unitsDirectoryPath}/${itemDir}`);
-    if (!stats.isDirectory()) return;
-    if (!fs.existsSync(`${unitsDirectoryPath}/${itemDir}/config.json`)) {
-      console.log(`${itemDir}: config.json not found.`);
-      return;
+  // eslint-disable-next-line no-restricted-syntax
+  for (const fileOrDir of unitsDirContent) {
+    if (path.extname(fileOrDir).toLocaleLowerCase() !== '.zip') break;
+
+    const itemName = path.basename(fileOrDir, '.zip');
+
+    console.log(`>>> ${unitsPath}/${itemName}`);
+    if (!fs.existsSync(`${unitsPath}/${itemName}`)) {
+      try {
+        // eslint-disable-next-line no-await-in-loop
+        await extract(`${unitsPath}/${fileOrDir}`, { dir: `${unitsPath}/${itemName}` });
+        console.log(`* ${itemName}: zip extracted`);
+      } catch (err) {
+        console.log(`* ${itemName}: could not extract zip`);
+        break;
+      }
+    } else {
+      console.log(`* ${itemName}: already present`);
+    }
+
+    if (!fs.existsSync(`${unitsPath}/${itemName}/config.json`)) {
+      console.log(`* ${itemName}: config.json not found.`);
+      break;
     }
     let config = {};
     try {
-      config = JSON.parse(fs.readFileSync(`${unitsDirectoryPath}/${itemDir}/config.json`, 'utf8'));
+      config = JSON.parse(fs.readFileSync(`${unitsPath}/${itemName}/config.json`, 'utf8'));
     } catch (e) {
-      console.log(`${itemDir}: config.json could not be read.`);
+      console.log(`${itemName}: config.json could not be read.`);
       console.warn(e);
-      return;
+      break;
     }
 
-    fs.cpSync(`${unitsDirectoryPath}/${itemDir}`, `${tmpDir}/package/units/${itemDir}`, { recursive: true });
+    fs.cpSync(`${unitsPath}/${itemName}`, `${tmpDir}/package/units/${itemName}`, { recursive: true });
     let unitDef = {};
     try {
       unitDef = {
@@ -143,24 +160,25 @@ const collectUnits = packageId => {
         package: packageId
       };
     } catch (e) {
-      console.log(`${itemDir}: task 0 not found.`);
+      console.log(`* ${itemName}: task 0 not found.`);
       console.warn(e);
-      return;
+      break;
     }
 
-    fs.writeFileSync(`${distDir}/${itemDir}.voud.json`, JSON.stringify(unitDef));
+    fs.writeFileSync(`${distDir}/${itemName}.voud.json`, JSON.stringify(unitDef));
 
-    const metadata = readUnitMetaDataIfExists(itemDir);
+    const metadata = readUnitMetaDataIfExists(itemName);
 
-    console.log(`* ${itemDir}`);
+    console.log(`* ${itemName}`);
 
     units.push({
-      id: itemDir,
+      id: itemName,
       metadata,
       config,
       unitDef
     });
-  });
+  }
+
   return units;
 };
 
@@ -281,12 +299,12 @@ const createXmlFiles = (packageId, units) => {
   createTesttakersXML(packageId);
 };
 
-const build = () => {
+const build = async () => {
   const packageId = getPackageId();
   prepare();
   const dependencies = collectRunTimeVersions(); // TODO only those which are needed
   createIndexFiles(dependencies);
-  const units = collectUnits(packageId);
+  const units = await collectUnits(packageId);
   createXmlFiles(packageId, units);
   addPlayer();
   zipPackage(packageId);

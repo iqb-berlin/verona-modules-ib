@@ -20,7 +20,7 @@
 | Paginations-Modi                          | Nein  | Ja     | Unmöglich
 | Mit spezifischem Task starten             | Ja    | (Nein) | TODO
 | Scores wegspeichern                       | Ja    | (Nein) | Scoreformat nicht ohne weiteres als IQB-Variablen verständlich  
-
+| mathJax Bibliothek nutzen                 | Ja    | Ja     | TODO 
  
 
 
