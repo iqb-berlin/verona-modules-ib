@@ -3,9 +3,8 @@ const fs = require('fs');
 const path = require('path');
 const ZipAFolder = require('zip-a-folder');
 const convert = require('xml-js');
+const extract = require('extract-zip');
 const version = require('../package.json').version;
-const extract = require('extract-zip')
-const { unzip } = require("selenium-webdriver/io/zip");
 
 const projectPath = path.join(__dirname, '/../');
 const distDir = `${projectPath}dist`;
@@ -97,7 +96,7 @@ const readUnitMetaDataIfExists = itemDir => {
   }
 };
 
-const collectUnits = async packageId => {
+const collectUnits = async (packageId, filterUnits) => {
   console.log('[collect units]');
   const unitsPath = `${projectPath}units`;
   const units = [];
@@ -116,6 +115,8 @@ const collectUnits = async packageId => {
     // eslint-disable-next-line no-continue
     if (path.extname(fileOrDir).toLocaleLowerCase() !== '.zip') continue;
     const itemName = path.basename(fileOrDir, '.zip');
+    // eslint-disable-next-line no-continue
+    if (filterUnits && !filterUnits.includes(itemName)) continue;
 
     if (!fs.existsSync(`${unitsPath}/${itemName}`)) {
       try {
@@ -298,14 +299,22 @@ const createXmlFiles = (packageId, units) => {
 const build = async () => {
   const packageId = getPackageId();
   prepare();
-  const units = await collectUnits(packageId);
+  const units = await collectUnits(packageId, []);
   createXmlFiles(packageId, units);
-  const dependencies = collectRunTimeVersions(units); // TODO only those which are needed
+  const dependencies = collectRunTimeVersions(units);
   createIndexFiles(dependencies);
   addPlayer();
   zipPackage(packageId);
 };
 
+const buildDev = async options => {
+  prepare();
+  const units = await collectUnits('package', (options?.filterUnits || []));
+  const dependencies = collectRunTimeVersions(units);
+  createIndexFiles(dependencies);
+};
+
 module.exports = {
-  build
+  build,
+  buildDev
 };

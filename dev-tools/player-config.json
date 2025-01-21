@@ -1,8 +1,3 @@
 {
-  "startPage": "1",
-  "unitId": "Unit·5",
-  "unitTitle": "Einstiegsunit",
-  "unitNumber": 5,
-  "directDownloadUrl": "http://localhost:9999/dist/itcr/",
-  "pagingMode": "concat-scroll"
+  "directDownloadUrl": "http://localhost:9999/tmp/"
 }

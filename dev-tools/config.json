@@ -1,8 +1,7 @@
 {
-  "player": "verona-player-ib-0.1.html",
+  "player": "src/verona-player-ib-0.1.html",
   "data": "sample-data/empty.json",
-  "unit": "dist/Simple.ib2verona.json",
-  "unit3": "dist/I008513_Tortoise.ib2verona.json",
+  "unit": "dist/I008513_Tortoise.voud.json",
   "playerConfig": "dev-tools/player-config.json",
   "host": "dev-tools/testhost.html"
 }

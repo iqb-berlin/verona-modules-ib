@@ -15,10 +15,22 @@ const paths = {
   playerConfig: `${path}/${config.playerConfig}`
 };
 
+const loadJSON = file => {
+  delete require.cache[require.resolve(file)];
+  // eslint-disable-next-line global-require,import/no-dynamic-require
+  return require(file);
+};
+
+const loadConfig = () => {
+  config = loadJSON('./config.json');
+};
+
 const buildPackage = () => {
-  delete require.cache[require.resolve('./package-builder')];
+  const unitId = config.unit.split('/').pop().replace('.voud.json', '');
+  console.log('UNIT # ' + unitId);
+  delete require.cache[require.resolve('../script/package-builder')];
   // eslint-disable-next-line global-require
-  require('./package-builder').build();
+  require('../script/package-builder').buildDev({ filterUnits: [unitId] });
 };
 
 const sendStartCommand = async driver => {
@@ -79,6 +91,7 @@ const serve = () => {
 
   fs.watch(path, { recursive: true }, async (eventType, filename) => {
     if (filename && filename.startsWith('.')) {
+      loadConfig();
       // eslint-disable-next-line global-require
       buildPackage();
       await driver.navigate().refresh();
