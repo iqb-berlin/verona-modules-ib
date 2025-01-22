@@ -1,4 +1,4 @@
-/* eslint-disable import/no-extraneous-dependencies */
+/* eslint-disable import/no-extraneous-dependencies,no-console */
 // a simple script for developers to run the player with a specific unit and data
 const { Options } = require('selenium-webdriver/firefox');
 const { Builder } = require('selenium-webdriver');
@@ -27,7 +27,6 @@ const loadConfig = () => {
 
 const buildPackage = () => {
   const unitId = config.unit.split('/').pop().replace('.voud.json', '');
-  console.log('UNIT # ' + unitId);
   delete require.cache[require.resolve('../script/package-builder')];
   // eslint-disable-next-line global-require
   require('../script/package-builder').buildDev({ filterUnits: [unitId] });

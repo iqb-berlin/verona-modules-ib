@@ -61,7 +61,7 @@
 
   <script>
     /* eslint-disable new-parens, class-methods-use-this, max-classes-per-file, no-use-before-define, no-console */
-    const unitStateDataType = 'iqb-standard@1.3';
+    const unitStateDataType = 'iqb-standard@1.4';
 
     const taskPlayerElem = document.getElementById('ib-runtime-host');
 
@@ -88,28 +88,23 @@
             return Message.send.vopStateChangedNotification({
               unitState: {
                 dataParts: {
-                  variables: JSON.stringify(IBVariables.toIQBStandard(message.state.variables)),
-                  fullState: JSON.stringify({ // VERONA 6 only allows one UnitStateDatatype, so have to wrap
-                    id: 'fullState',
-                    value: JSON.stringify(message.state),
-                    state: 'VALUE_CHANGED'
-                  })
+                  variables: JSON.stringify(IQBStandard.fromIBVariablesMap(message.state.variables))
                 },
                 presentationProgress: 'some', // TODO
-                responseProgress: 'some' // TODO
-              },
-              unitStateDataType
+                responseProgress: 'some', // TODO
+                unitStateDataType
+              }
             });
           case 'getScoringResultReturn': {
             return Message.send.vopStateChangedNotification({
               unitState: {
                 dataParts: {
-                  scores: JSON.stringify(message.result)
+                  scores: JSON.stringify(IQBStandard.fromIBScoringResult(message.result))
                 },
                 presentationProgress: 'some', // TODO
-                responseProgress: 'some' // TODO
-              },
-              unitStateDataType
+                responseProgress: 'some', // TODO
+                unitStateDataType
+              }
             });
           }
           case 'taskSwitchRequest': {
@@ -130,23 +125,27 @@
       };
     };
 
-    const IBVariables = new class {
-      toIQBStandard = variablesMap => Object.entries(variablesMap)
-        .map(([hostItem, variablesList]) => {
-          console.log(hostItem, variablesList);
-          return Object.values(variablesList)
-            .map(variable => ({
-              id: IBVariables.#toIQBStandardVarId(variable.name),
-              state: 'VALUE_CHANGED',
-              value: IBVariables.#toIQBStandardValueType(variable.value),
-              subForm: hostItem
-            }));
-        });
+    const IQBStandard = new class {
+      fromIBVariablesMap = variablesMap => Object.entries(variablesMap)
+        .flatMap(([hostItem, variablesList]) => Object.values(variablesList)
+          .map(variable => ({
+            id: this.#cleanVarId(variable.name),
+            status: 'VALUE_CHANGED',
+            value: this.#cleanValue(variable.value),
+            subForm: hostItem
+          })));
 
-      #toIQBStandardVarId = variableName => variableName
+      fromIBScoringResult = scoringResult => Object.entries(scoringResult)
+        .map(([id, value]) => ({
+          id: this.#cleanVarId(id),
+          status: 'VALUE_CHANGED',
+          value: this.#cleanValue(value)
+        }));
+
+      #cleanVarId = variableName => variableName
         .replaceAll(/[^0-9a-zA-Z_]/g, c => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
 
-      #toIQBStandardValueType = value => {
+      #cleanValue = value => {
         if (typeof value === 'undefined') return null;
         if (['number', 'string', 'boolean'].includes(typeof value)) return value;
         if (Array.isArray(value)) {
@@ -156,7 +155,7 @@
             }
             return agg;
           }, []);
-          return value.map(types.length > 1 ? JSON.stringify : this.#toIQBStandardValueType);
+          return value.map(types.length > 1 ? JSON.stringify : this.#cleanValue);
         }
         return JSON.stringify(value);
       };

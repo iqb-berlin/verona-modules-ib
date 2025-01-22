@@ -47,5 +47,13 @@ Pro Booklet mit IB-Inhalten gehört ein solches Paket.
 | mathJax Bibliothek nutzen                 | Ja    | Ja     | TODO 
 
 
-
 *) entweder Vorladen durch Nutzung vom Browsercache oder Einsatz von Webservice
+
+## Weitere Fragen mit auswirkungen auf Verona
+
+## ServiceWorker
+- Runtime meldet: "SW installation SW not present or not prod env. Install SW:. app can NOT be used in offline mode!"
+Wofür braucht man den? Braucht man den wirklich?
+Ggf. Anpassung der TC-Architektur
+
+## 

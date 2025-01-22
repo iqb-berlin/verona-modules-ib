@@ -259,8 +259,18 @@ const createBookletXML = (packageId, units) => {
     <Description></Description>
   </Metadata>
 
+  <!-- you can (and should!) remove this when seriously using this booklet, it's just for debugging -->
+  <States>
+    <State id="dummy-to-track-vars">
+      <Option id="dummy">
+        ${units.map(unit => unit.config.variables.map(variable => `<If><Value of="${variable.name}" from="${unit.id}" /><Is equal="--" /></If>`).join('\n\t\t\t\t')).join('\n\t\t\t')}
+      </Option>
+      <Option id="dummy2" />
+    </State>
+  </States>
+
   <Units>
-    ${units.map(unit => `<Unit id='${unit.id}' label='${unit.metadata.Title || unit.id}' labelshort='${unit.metadata.Title || unit.id}' />`).join('\n\t\t')}
+    ${units.map((unit, i) => `<Unit id='${unit.id}' label='${unit.metadata.Title || unit.id}' labelshort='${i}' />`).join('\n\t\t')}
   </Units>
 </Booklet>`;
   fs.writeFileSync(`${distDir}/${packageId}.booklet.xml`, xml);
@@ -299,7 +309,7 @@ const createXmlFiles = (packageId, units) => {
 const build = async () => {
   const packageId = getPackageId();
   prepare();
-  const units = await collectUnits(packageId, []);
+  const units = await collectUnits(packageId);
   createXmlFiles(packageId, units);
   const dependencies = collectRunTimeVersions(units);
   createIndexFiles(dependencies);
