@@ -1,13 +1,15 @@
 # verona-modules-ib
 
+Machbarkeitsstudie eines Item-Builder-Players für Verona.
+
 ## Konzept
 
 Die DIPF-Itemplayer-Runtime und die Aufgaben-_inhalte_ müssen aus der selben Quelle 
-nachgeladen werden. Dazu wird alles was benötigt wid in ein itcr-Paket gepackt.
+nachgeladen werden. Dazu wird alles, was benötigt wird, in ein itcr-Paket gepackt.
 Der Player und die Unit-Definition (aus Testcentersicht) sind dann nur ganz
-dünne Layers, das wesentliche befindet sich in dem Paket.
+dünne Layer - das Wesentliche befindet sich in dem Paket.
 
-Pro Booklet mit IB-Inhalten gehört ein solches Paket.
+Für jedes Booklet mit IB-Inhalten wird ein solches Paket benötigt.
 
 
 ## Vorgehensweise
