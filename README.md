@@ -35,7 +35,7 @@ Für jedes Booklet mit IB-Inhalten wird ein solches Paket benötigt.
 | Seiten-Navigation von außen               | Nein? | Ja     | TODO
 | presentationProggress / responseProgress  | Nein? | Ja     | Prüfen
 | VariablenState NOT_REACHED / DISPLAYED    | Nein? | Ja     | Prüfen
-| Eingaben wegspeichern                     | Ja    | Ja     | TODO                                                 |
+| Eingaben wegspeichern                     | Ja    | Ja     | Done                                                 |
 | Logs wegspeichern                         | Ja    | Ja     | TODO                                                 |
 | Eingaben/Aufgabenzustand wiederherstellen | Ja?   | Ja     | TODO (warscheinl. möglich über Replay?)              |
 | Replay                                    | Ja    | Nein   |                                                      |
@@ -45,7 +45,7 @@ Für jedes Booklet mit IB-Inhalten wird ein solches Paket benötigt.
 | Trennung von Runtime und Aufgabeninhalten | Ja    | Ja     | Wahrscheinlich unmöglich ohne Anpassung der IB-Runtime
 | Paginations-Modi                          | Nein  | Ja     | Unmöglich
 | Mit spezifischem Task starten             | Ja    | (Nein) | TODO
-| Scores wegspeichern                       | Ja    | (Nein) | Scoreformat nicht ohne weiteres als IQB-Variablen verständlich  
+| Scores wegspeichern                       | Ja    | (Nein) | Ja, aber Scoreformat nicht ohne weiteres als IQB-Variablen verständlich  
 | mathJax Bibliothek nutzen                 | Ja    | Ja     | TODO 
 
 
