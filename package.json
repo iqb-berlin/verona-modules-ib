@@ -1,6 +1,6 @@
 {
   "name": "verona-modules-ib",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "",
   "dependencies": {
     "extract-zip": "^2.0.1",

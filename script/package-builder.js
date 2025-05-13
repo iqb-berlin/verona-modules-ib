@@ -154,7 +154,8 @@ const collectUnits = async (packageId, filterUnits) => {
         scope: 'A',
         runtimeVersion: config.runtimeCompatibilityVersion,
         item: config.name,
-        package: packageId
+        package: packageId,
+        folder: itemName
       };
     } catch (e) {
       console.log(`* ${itemName}: task 0 not found.`);

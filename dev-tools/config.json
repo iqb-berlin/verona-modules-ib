@@ -1,7 +1,7 @@
 {
-  "player": "src/verona-player-ib-0.1.html",
+  "player": "src/verona-player-ib-0.2.html",
   "data": "sample-data/empty.json",
-  "unit": "dist/I008513_Tortoise.voud.json",
+  "unit": "dist/19_Geometrische_Muster_A",
   "playerConfig": "dev-tools/player-config.json",
   "host": "dev-tools/testhost.html"
 }
