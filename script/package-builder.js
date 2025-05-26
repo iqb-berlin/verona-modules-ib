@@ -35,6 +35,7 @@ const prepare = () => {
   fs.mkdirSync(`${tmpDir}/package`);
   fs.mkdirSync(`${tmpDir}/package/runtimes`);
   fs.mkdirSync(`${tmpDir}/package/units`);
+  fs.mkdirSync(`${tmpDir}/package/assets`);
 };
 
 const collectRunTimeVersions = units => {
@@ -165,7 +166,6 @@ const collectUnits = async (packageId, filterUnits) => {
     }
 
     fs.writeFileSync(`${distDir}/${itemName}.voud.json`, JSON.stringify(unitDef));
-
     const metadata = readUnitMetaDataIfExists(itemName);
 
     console.log(`* ${itemName}`);
@@ -179,6 +179,91 @@ const collectUnits = async (packageId, filterUnits) => {
   }
 
   return units;
+};
+
+const fetchExternalAssets = async () => {
+  const downloadAndSave = async url => {
+    const parsedUrl = new URL(url);
+    const domain = parsedUrl.hostname;
+    const filepath = parsedUrl.pathname;
+    const fileName = path.basename(filepath) || 'index.html';
+
+    const domainDir = path.join(`${projectPath}assets`, domain);
+    fs.mkdirSync(domainDir, { recursive: true });
+
+    const filePath = path.join(domainDir, filepath, fileName);
+    if (fs.existsSync(filePath)) {
+      return;
+    }
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      console.log(`* [error] could not download ${url}`);
+      return;
+    }
+
+    const buffer = await response.arrayBuffer();
+
+    const localPath = path.join(domainDir, path.dirname(filepath));
+    fs.mkdirSync(localPath, { recursive: true });
+    fs.writeFileSync(path.join(localPath, fileName), Buffer.from(buffer));
+    console.log(`* Saved ${url} → ${filePath}`);
+  };
+  const assetsFile = `${projectPath}assets/assets.json`;
+  if (!fs.existsSync(assetsFile)) {
+    console.log('* no assets file');
+    return Promise.resolve();
+  }
+  const assets = JSON.parse(fs.readFileSync(assetsFile, { encoding: 'utf-8' }));
+  return Promise.all(assets.map(downloadAndSave));
+};
+
+const collectAssets = async () => {
+  console.log('[collect assets]');
+  await fetchExternalAssets();
+  const assetsPath = `${projectPath}assets`;
+  const entries = fs.readdirSync(assetsPath, { withFileTypes: true });
+  return entries
+    .map(entry => {
+      const assetSubPath = path.join(assetsPath, entry.name);
+      if (!entry.isDirectory()) return null;
+      fs.cpSync(assetSubPath, `${tmpDir}/package/assets/${entry.name}`, { recursive: true });
+      return entry.name;
+    })
+    .filter(e => !!e);
+};
+
+const replaceAssetsUrls = (packageId, replacePaths) => {
+  const replaceInDir = subPath => {
+    const entries = fs.readdirSync(subPath, { withFileTypes: true });
+    entries.forEach(entry => {
+      const fullPath = path.join(subPath, entry.name);
+      if (entry.isDirectory()) {
+        replaceInDir(fullPath);
+      } else if (entry.isFile()) {
+        let content = fs.readFileSync(fullPath, 'utf8');
+        let changed = false;
+        replacePaths
+          .forEach(searchString => {
+            if (content.includes(searchString)) {
+              content = content.replace(new RegExp(`https?://${searchString}`, 'g'), `${packageId}/assets/${searchString}`);
+              console.log(`* Replaced '${searchString}' in ${path.join(subPath, entry.name)}`);
+              changed = true;
+            }
+          });
+        if (changed) {
+          fs.writeFileSync(fullPath, content, 'utf8');
+        }
+      }
+    });
+  };
+  console.log('[update asset urls in files]');
+  if (!replacePaths.length) {
+    console.log('* nothing to do');
+    return;
+  }
+  replaceInDir(`${tmpDir}/package/units`);
 };
 
 const createIndexFiles = dependencies => {
@@ -316,6 +401,8 @@ const build = async () => {
   createXmlFiles(packageId, units);
   const dependencies = collectRunTimeVersions(units);
   createIndexFiles(dependencies);
+  const assetSets = await collectAssets();
+  replaceAssetsUrls(packageId, assetSets);
   addPlayer();
   zipPackage(packageId);
 };
@@ -325,6 +412,8 @@ const buildDev = async options => {
   const units = await collectUnits('package', (options?.filterUnits || []));
   const dependencies = collectRunTimeVersions(units);
   createIndexFiles(dependencies);
+  const assetSets = await collectAssets();
+  replaceAssetsUrls(assetSets);
 };
 
 module.exports = {

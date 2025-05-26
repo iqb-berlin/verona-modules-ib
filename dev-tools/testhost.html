@@ -27,15 +27,13 @@
   (async () => {
     const host = document.getElementById('host');
     const player = await fetch('http://localhost:9999/player');
-    const playerSettings = 'debounceStateMessages=0&debounceKeyboardEvents=0';
     const playerSrc = (await player.text());
-      // .replace(/const overridePlayerSettings = (location\.search);/, `const overridePlayerSettings = "${playerSettings}"`);
-    const playerConfigRes = await fetch('http://localhost:9999/playerConfig')
+    const playerConfigRes = await fetch('http://localhost:9999/playerConfig');
     const playerConfigTxt = playerConfigRes ? await playerConfigRes.text() : null;
     const playerConfig = playerConfigTxt ? JSON.parse(playerConfigTxt) : {};
-    const unit = await fetch('http://localhost:9999/unit')
+    const unit = await fetch('http://localhost:9999/unit');
     const unitDefinition = await unit.text() || 'not found';
-    host.srcdoc = playerSrc
+    host.srcdoc = playerSrc;
     window.addEventListener('message', event => {
       console.log(event.data);
       if (event.data.type === 'vopReadyNotification') {

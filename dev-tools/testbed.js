@@ -57,8 +57,17 @@ const serve = () => {
   http.createServer((req, res) => {
     const parts = req.url.split('?', 2);
     const url = parts[0];
-    const filePath = paths[url.replace(/^\//, '')] || `${path}/${url}`;
+    let filePath = paths[url.replace(/^\//, '')] || `${path}/${url}`;
+
+    const stats = fs.statSync(path);
+    if (stats.isDirectory() && fs.existsSync(`${filePath}/index.html`)) {
+      filePath = `${filePath}/index.html`;
+    } else if (stats.isDirectory() && fs.existsSync(`${filePath}/index.htm`)) {
+      filePath = `${filePath}/index.htm`;
+    }
+
     console.log(`FETCH: ${filePath}`);
+
     fs.readFile(filePath, (err, data) => {
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE');
