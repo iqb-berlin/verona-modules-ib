@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Unit
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/iqb-berlin/testcenter/15.4.0/definitions/vo_Unit.xsd"
+>
+  <Metadata>
+    <Id>intro_«««« packageId »»»»</Id>
+    <Label>Intro</Label>
+    <Description></Description>
+  </Metadata>
+
+  <Definition player="verona-player-simple-6.0">
+    <![CDATA[
+      <style>
+        @supports (-moz-appearance: none) {
+          body {
+            background: red
+          }
+          #warning {
+            font-size: xx-large;
+            background: red !important;
+            color: yellow !important;
+          }
+          button {
+            display: none
+          }
+        }
+      </style>
+      <div style='max-width: 650px; margin: auto; background: silver; padding: 2em; margin-top: 100px;'>
+        <h1>Mathe sicher können - Online-Check</h1>
+        <h2>
+          <a href='https://kroehne.github.io/msk-oc/oer_generated/«««« edition »»»»_«««« version »»»»_9.9.0_«««« section »»»».html' target='_blank'>
+            «««« section »»»» «««« title »»»»
+          </a>
+          (Edition «««« edition »»»», Version «««« version »»»»)
+        </h2>
+        <h3>Probeweise Einbettung im IQB Testcenter</h3>
+        <button style="width: 100%; font-size: large; padding: 0.5em" onclick="Message.send.vopUnitNavigationRequestedNotification('next')">Start</button>
+        <p id='warning' style='background:lightyellow; border: 2px solid red; padding: 0.5em'>
+          Achtung: Funktioniert aktuell nur in
+          <b>Chrome</b>basierten Browsern und <b>nicht in Firefox</b>❗
+        </p>
+      </div>
+    ]]>
+  </Definition>
+
+
+</Unit>

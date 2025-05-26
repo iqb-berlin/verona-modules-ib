@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Testtakers
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/iqb-berlin/testcenter/15.4.0/definitions/vo_Testtakers.xsd"
+>
+  <Metadata>
+    <Description>Skeleton Testtakers-File as basis to work with</Description>
+  </Metadata>
+
+  <Group id="msk-sample" label="MSK">
+    <Login mode="run-hot-restart" name="msk">
+      «««« booklets »»»»
+    </Login>
+    <Login mode="run-hot-return" name="msk_return">
+      «««« booklets »»»»
+    </Login>
+    <Login mode="run-review" name="msk-review">
+      «««« booklets »»»»
+    </Login>
+    <Login mode="monitor-group" name="msk-monitor" />
+  </Group>
+</Testtakers>
