@@ -310,7 +310,7 @@ const createXmlFiles = (packageId, units) => {
 };
 
 const build = async () => {
-  const packageId = getPackageId();
+  const packageId = process.argv[2] || getPackageId();
   prepare();
   const units = await collectUnits(packageId);
   createXmlFiles(packageId, units);
