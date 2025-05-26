@@ -26,30 +26,31 @@ Für jedes Booklet mit IB-Inhalten wird ein solches Paket benötigt.
 
 ## Features
 
-| Feature                                   | IB    | V/ITC  | Status                                               |
-|-------------------------------------------|-------|--------|------------------------------------------------------|
-| Aufgabe Anzeigen                          | Ja    | Ja     | Done                                                 |
-| Neue Aufgabe im selben Player Laden       | Ja    | Ja     | TODO                                                 |
-| Unit-Navigation aus der Aufgabe heraus    | Ja    | Ja     | Done
-| Unit-Navigation von außen                 | Ja    | Ja     | TODO
-| Seiten-Navigation von außen               | Nein? | Ja     | TODO
-| presentationProggress / responseProgress  | Nein? | Ja     | Prüfen
-| VariablenState NOT_REACHED / DISPLAYED    | Nein? | Ja     | Prüfen
-| Eingaben wegspeichern                     | Ja    | Ja     | Done                                                 |
-| Logs wegspeichern                         | Ja    | Ja     | TODO                                                 |
-| Eingaben/Aufgabenzustand wiederherstellen | Ja?   | Ja     | TODO (warscheinl. möglich über Replay?)              |
-| Replay                                    | Ja    | Nein   |                                                      |
-| Fokus tracken                             | Nein  | Ja     | Wahrscheinlich unmöglich ohne Anpassung der IB-Runtime |
-| Print-Modus                               | Nein  | Ja     |                                                      |
-| Vorladen von Biblbiotheken und Inhalten   | Nein  | Ja     | Nur möglich durch größere Umbauten im Testcenter *)  |
-| Trennung von Runtime und Aufgabeninhalten | Ja    | Ja     | Wahrscheinlich unmöglich ohne Anpassung der IB-Runtime
-| Paginations-Modi                          | Nein  | Ja     | Unmöglich
-| Mit spezifischem Task starten             | Ja    | (Nein) | TODO
-| Scores wegspeichern                       | Ja    | (Nein) | Ja, aber Scoreformat nicht ohne weiteres als IQB-Variablen verständlich  
-| mathJax Bibliothek nutzen                 | Ja    | Ja     | TODO 
+| Feature                                    | IB    | V/ITC  | Status                                                                  |
+|--------------------------------------------|-------|--------|-------------------------------------------------------------------------|
+| Aufgabe Anzeigen                           | Ja    | Ja     | Done                                                                    |
+| Neue Aufgabe im selben Player Laden        | Ja    | Ja     | TODO                                                                    |
+| Unit-Navigation aus der Aufgabe heraus     | Ja    | Ja     | Done                                                                    
+| Unit-Navigation von außen                  | Ja    | Ja     | TODO                                                                    
+| Seiten-Navigation von außen                | Nein? | Ja     | TODO (Absprechen: ib-tasks auf verona-pages mappen)                     
+| Paginations-Modi                           | Nein  | Ja     | Unmöglich (würde für nur für bestimmte Items funktionieren)      
+| presentationProggress / responseProgress   | Nein? | Ja     | Prüfen (aus dem scoring abgeifen ggf.)                                  
+| VariablenState NOT_REACHED / DISPLAYED     | Nein? | Ja     | Prüfen (ebenso)                                                         
+| Eingaben wegspeichern                      | Ja    | Ja     | Done                                                                    |
+| Logs wegspeichern                          | Ja    | Ja     | TODO                                                                    |
+| Eingaben/Aufgabenzustand wiederherstellen  | Ja?   | Ja     | TODO (warscheinl. möglich über Replay?)                                 |
+| Replay                                     | Ja    | Nein   |                                                                         |
+| Fokus tracken                              | Nein  | Ja     | Wahrscheinlich unmöglich ohne Anpassung der IB-Runtime                  |
+| Print-Modus                                | Nein  | Ja     | (wird auf DIPF seite eventuell entwickelt)                              |
+| Vorladen von Bibliotheken und Inhalten     | Nein  | Ja     | Nur möglich durch größere Umbauten im Testcenter *) **)                 |
+| Trennung von Runtime und Aufgabeninhalten  | Ja    | Ja     | Wahrscheinlich unmöglich ohne Anpassung der IB-Runtime
+| Mit spezifischem Task starten              | Ja    | (Nein) | TODO                                                                    
+| Scores wegspeichern                        | Ja    | (Nein) | Ja, aber Scoreformat nicht ohne weiteres als IQB-Variablen verständlich 
+| mathJax Bibliothek nutzen                  | Ja    | Ja     | TODO                                                                    
 
 
-*) entweder Vorladen durch Nutzung vom Browsercache oder Einsatz von Webservice
+*) entweder Vorladen durch Nutzung vom Browsercache oder Einsatz von Webworker
+**) sollte das config eigentlich sagen
 
 ## Weitere Fragen mit auswirkungen auf Verona
 
