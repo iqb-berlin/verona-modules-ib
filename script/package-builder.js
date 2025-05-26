@@ -154,7 +154,8 @@ const collectUnits = async (packageId, filterUnits) => {
         scope: 'A',
         runtimeVersion: config.runtimeCompatibilityVersion,
         item: config.name,
-        package: packageId
+        package: packageId,
+        folder: itemName
       };
     } catch (e) {
       console.log(`* ${itemName}: task 0 not found.`);
@@ -211,6 +212,8 @@ const zipPackage = packageId => {
   ZipAFolder.zip(`${tmpDir}/package`, `${distDir}/${packageId}.itcr.zip`);
 };
 
+const unitId = unit => unit.id.replace(/[^a-zA-Z0-9]/g, '_').replace(/(^\d)/, 'x$1');
+
 const createUnitXML = (packageId, unit) => {
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <Unit
@@ -218,7 +221,7 @@ const createUnitXML = (packageId, unit) => {
   xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/iqb-berlin/testcenter/15.4.0/definitions/vo_Unit.xsd"
 >
   <Metadata>
-    <Id>${unit.id}</Id>
+    <Id>${unitId(unit)}</Id>
     <Label>${unit.metadata.Title || unit.id}</Label>
     <Description>
       ${unit.metadata.Description}
@@ -263,14 +266,14 @@ const createBookletXML = (packageId, units) => {
   <States>
     <State id="dummy-to-track-vars">
       <Option id="dummy">
-        ${units.map(unit => unit.config.variables.map(variable => `<If><Value of="${variable.name}" from="${unit.id}" /><Is equal="--" /></If>`).join('\n\t\t\t\t')).join('\n\t\t\t')}
+        ${units.map(unit => unit.config.variables.map(variable => `<If><Value of="${variable.name}" from="${unitId(unit)}" /><Is equal="--" /></If>`).join('\n\t\t\t\t')).join('\n\t\t\t')}
       </Option>
       <Option id="dummy2" />
     </State>
   </States>
 
   <Units>
-    ${units.map((unit, i) => `<Unit id='${unit.id}' label='${unit.metadata.Title || unit.id}' labelshort='${i}' />`).join('\n\t\t')}
+    ${units.map((unit, i) => `<Unit id='${unitId(unit)}' label='${unit.metadata.Title || unit.id}' labelshort='${i}' />`).join('\n\t\t')}
   </Units>
 </Booklet>`;
   fs.writeFileSync(`${distDir}/${packageId}.booklet.xml`, xml);

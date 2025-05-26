@@ -15,7 +15,7 @@
           "lang": "en"
         }
       ],
-      "version": "0.1.0",
+      "version": "0.2.0",
       "specVersion": "6.0",
       "description": [
         {
@@ -232,7 +232,8 @@
         item: undefined,
         task: undefined,
         scope: undefined,
-        package: undefined
+        package: undefined,
+        folder: undefined
       };
 
       start = async data => {
@@ -263,7 +264,7 @@
         TaskPlayer.send({ eventType: 'setUserId', id: `verona:${sessionId}` });
 
         // unit path
-        const unitPath = `${playerConfig.directDownloadUrl}/${this.definition.package}/units/${this.definition.item}`;
+        const unitPath = `${playerConfig.directDownloadUrl}/${this.definition.package}/units/${this.definition.folder}`;
 
         // -- get item config
         const configFileCallResponse = await fetch(`${unitPath}/config.json`);
