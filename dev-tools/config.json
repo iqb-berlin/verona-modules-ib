@@ -1,7 +1,7 @@
 {
   "player": "src/verona-player-ib-0.2.html",
   "data": "sample-data/empty.json",
-  "unit": "dist/19_Geometrische_Muster_A",
+  "unit": "dist/19_Abstand_auf_dem_Wasser_neu.voud.json",
   "playerConfig": "dev-tools/player-config.json",
   "host": "dev-tools/testhost.html"
 }

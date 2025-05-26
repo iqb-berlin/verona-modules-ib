@@ -55,7 +55,9 @@ const sendStartCommand = async driver => {
 
 const serve = () => {
   http.createServer((req, res) => {
-    const filePath = paths[req.url.replace(/^\//, '')] || `${path}/${req.url}`;
+    const parts = req.url.split('?', 2);
+    const url = parts[0];
+    const filePath = paths[url.replace(/^\//, '')] || `${path}/${url}`;
     console.log(`FETCH: ${filePath}`);
     fs.readFile(filePath, (err, data) => {
       res.setHeader('Access-Control-Allow-Origin', '*');
